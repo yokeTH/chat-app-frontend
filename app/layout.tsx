@@ -1,6 +1,7 @@
 import type React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
+import AuthProvider from '@/components/auth-provider';
 
 export const metadata: Metadata = {
   title: 'v0 App',
@@ -15,9 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className="overflow-hidden h-screen">{children}</body>
+      <AuthProvider>
+        <body className="overflow-hidden h-screen">{children}</body>
+      </AuthProvider>
     </html>
   );
 }
-
-import './globals.css';

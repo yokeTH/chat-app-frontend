@@ -385,6 +385,8 @@ export default function ChatArea({
         <div className="space-y-2">
           <div className="relative group">
             <Image
+              width={240}
+              height={240}
               src={imageUrl || '/placeholder.svg'}
               alt={imageName}
               className="max-w-full rounded-md max-h-60 object-contain cursor-pointer"

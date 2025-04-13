@@ -18,6 +18,7 @@ import { type Conversation, type User, mockUsers } from '@/lib/mock-data';
 import NewConversationDialog from '@/components/new-conversation-dialog';
 import OnlineStatus from '@/components/online-status';
 import { cn } from '@/lib/utils';
+import { signOut } from 'next-auth/react';
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -45,9 +46,7 @@ export default function Sidebar({
   const router = useRouter();
 
   const handleSignOut = () => {
-    // In a real app, this would clear authentication state
-    localStorage.removeItem('currentUser');
-    router.push('/');
+    signOut();
   };
 
   const handleSaveSettings = () => {

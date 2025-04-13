@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import Sidebar from '@/components/sidebar';
 import ChatArea from '@/components/chat-area';
@@ -13,6 +13,7 @@ import {
   mockConversations,
   mockUsers,
 } from '@/lib/mock-data';
+import { useSession } from 'next-auth/react';
 
 interface ChatLayoutProps {
   initialChatId?: string;
@@ -23,9 +24,19 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     useState<Conversation[]>(mockConversations);
   const [activeConversation, setActiveConversation] =
     useState<Conversation | null>(null);
-  const [currentUser] = useState<User>(mockUsers[0]);
+  const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const { data: session, status } = useSession();
+  useEffect(() => {
+    const user: User = {
+      id: session?.user?.id ?? '',
+      name: session?.user?.name ?? '',
+      avatar: session?.user?.image ?? '',
+      isOnline: true,
+    };
+    setCurrentUser(user);
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const pathname = usePathname();
@@ -211,8 +222,13 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     }
   };
 
+  if (status == 'loading' || status == 'unauthenticated') {
+    redirect('/');
+    return;
+  }
   return (
     <WebSocketProvider user={currentUser}>
+      {/* <pre>{JSON.stringify(currentUser)}</pre> */}
       <div className="flex h-screen w-screen overflow-hidden bg-muted">
         <Sidebar
           conversations={conversations}
