@@ -226,7 +226,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
         <ChatArea
           conversation={activeConversation}
           currentUser={currentUser}
-          onSendMessagexxx={handleNewMessage}
+          onSendMessage={handleNewMessage}
           onAddReaction={handleAddReaction}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           isSidebarOpen={sidebarOpen}
