@@ -1,27 +1,27 @@
-"use client"
+'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { User } from "@/lib/mock-data"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { User } from '@/lib/mock-data';
 
 interface TypingIndicatorProps {
-  users: User[]
+  users: User[];
 }
 
 export default function TypingIndicator({ users }: TypingIndicatorProps) {
-  if (users.length === 0) return null
+  if (users.length === 0) return null;
 
   // Format the typing message based on number of users
   const getTypingMessage = () => {
     if (users.length === 1) {
-      return `${users[0].name} is typing`
+      return `${users[0].name} is typing`;
     } else if (users.length === 2) {
-      return `${users[0].name} and ${users[1].name} are typing`
+      return `${users[0].name} and ${users[1].name} are typing`;
     } else if (users.length === 3) {
-      return `${users[0].name}, ${users[1].name}, and ${users[2].name} are typing`
+      return `${users[0].name}, ${users[1].name}, and ${users[2].name} are typing`;
     } else {
-      return `${users[0].name}, ${users[1].name}, and ${users.length - 2} others are typing`
+      return `${users[0].name}, ${users[1].name}, and ${users.length - 2} others are typing`;
     }
-  }
+  };
 
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -29,7 +29,9 @@ export default function TypingIndicator({ users }: TypingIndicatorProps) {
         {users.slice(0, 3).map((user) => (
           <Avatar key={user.id} className="h-8 w-8 border-2 border-background">
             <AvatarImage src={user.avatar} />
-            <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {user.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
         ))}
       </div>
@@ -42,5 +44,5 @@ export default function TypingIndicator({ users }: TypingIndicatorProps) {
         </span>
       </div>
     </div>
-  )
+  );
 }

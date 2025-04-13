@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
 export default function SignIn() {
   return (
@@ -9,7 +9,7 @@ export default function SignIn() {
       variant="outline"
       className="w-full"
       onClick={() => {
-        signIn("google", { redirectTo: "/chat" });
+        signIn('google', { redirectTo: '/chat' });
       }}
     >
       <svg

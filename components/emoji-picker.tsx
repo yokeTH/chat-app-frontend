@@ -1,52 +1,55 @@
-"use client"
+'use client';
 
-import { useEffect, useRef } from "react"
-import { Card } from "@/components/ui/card"
+import { useEffect, useRef } from 'react';
+import { Card } from '@/components/ui/card';
 
 interface EmojiPickerProps {
-  onSelect: (emoji: string) => void
-  onClose: () => void
+  onSelect: (emoji: string) => void;
+  onClose: () => void;
 }
 
 export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
-  const pickerRef = useRef<HTMLDivElement>(null)
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   // Common emojis
   const emojis = [
-    "😊",
-    "😂",
-    "👍",
-    "❤️",
-    "🎉",
-    "🔥",
-    "👏",
-    "🙏",
-    "😍",
-    "🤔",
-    "😢",
-    "😎",
-    "🤣",
-    "😁",
-    "👌",
-    "🥰",
-    "😇",
-    "😉",
-    "🤩",
-    "😋",
-  ]
+    '😊',
+    '😂',
+    '👍',
+    '❤️',
+    '🎉',
+    '🔥',
+    '👏',
+    '🙏',
+    '😍',
+    '🤔',
+    '😢',
+    '😎',
+    '🤣',
+    '😁',
+    '👌',
+    '🥰',
+    '😇',
+    '😉',
+    '🤩',
+    '😋',
+  ];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        onClose()
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        onClose();
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [onClose])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
 
   return (
     <Card ref={pickerRef} className="p-2 shadow-lg w-64">
@@ -62,5 +65,5 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
         ))}
       </div>
     </Card>
-  )
+  );
 }

@@ -1,22 +1,34 @@
-"use client";
+'use client';
 
-import type React from "react";
+import type React from 'react';
 
-import { useState, useRef, useEffect } from "react";
-import { Menu, Search, Paperclip, Send, Smile, X, ArrowLeft, Download, Users, ZoomIn } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { useWebSocketContext } from "@/contexts/websocket-context";
-import { ReadyState } from "react-use-websocket";
-import type { Conversation, Message, User } from "@/lib/mock-data";
-import MessageItem from "@/components/message-item";
-import EmojiPicker from "@/components/emoji-picker";
-import ImageLightbox from "@/components/image-lightbox";
-import TypingIndicator from "@/components/typing-indicator";
-import OnlineStatus from "@/components/online-status";
-import { cn } from "@/lib/utils";
+import { useState, useRef, useEffect } from 'react';
+import {
+  Menu,
+  Search,
+  Paperclip,
+  Send,
+  Smile,
+  X,
+  ArrowLeft,
+  Download,
+  Users,
+  ZoomIn,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useWebSocketContext } from '@/contexts/websocket-context';
+import { ReadyState } from 'react-use-websocket';
+import type { Conversation, Message, User } from '@/lib/mock-data';
+import MessageItem from '@/components/message-item';
+import EmojiPicker from '@/components/emoji-picker';
+import ImageLightbox from '@/components/image-lightbox';
+import TypingIndicator from '@/components/typing-indicator';
+import OnlineStatus from '@/components/online-status';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface ChatAreaProps {
   conversation: Conversation | null;
@@ -33,14 +45,14 @@ export default function ChatArea({
   onSendMessage,
   onAddReaction,
   onToggleSidebar,
-  isSidebarOpen,
+  // isSidebarOpen,
 }: ChatAreaProps) {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState<User[]>([]);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [activeTab, setActiveTab] = useState("chat");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState('chat');
+  const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +60,9 @@ export default function ChatArea({
     src: string;
     alt: string;
   } | null>(null);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
   const {
     sendMessage: wsSendMessage,
@@ -73,7 +87,10 @@ export default function ChatArea({
   // Get other user for DM conversations
   const getOtherUser = () => {
     if (!conversation || conversation.isGroup) return null;
-    return conversation.members.find((member) => member.id !== currentUser.id) || null;
+    return (
+      conversation.members.find((member) => member.id !== currentUser.id) ||
+      null
+    );
   };
 
   // Handle WebSocket messages
@@ -82,19 +99,26 @@ export default function ChatArea({
 
     // Handle different WebSocket events
     switch (lastMessage.event) {
-      case "typing_start":
+      case 'typing_start':
         const typingPayload = lastMessage.payload;
-        if (typingPayload.conversationId === conversation.id && typingPayload.userId !== currentUser.id) {
-          const typingUser = conversation.members.find((m) => m.id === typingPayload.userId);
+        if (
+          typingPayload.conversationId === conversation.id &&
+          typingPayload.userId !== currentUser.id
+        ) {
+          const typingUser = conversation.members.find(
+            (m) => m.id === typingPayload.userId
+          );
           if (typingUser && !typingUsers.some((u) => u.id === typingUser.id)) {
             setTypingUsers((prev) => [...prev, typingUser]);
           }
         }
         break;
-      case "typing_end":
+      case 'typing_end':
         const endTypingPayload = lastMessage.payload;
         if (endTypingPayload.conversationId === conversation.id) {
-          setTypingUsers((prev) => prev.filter((u) => u.id !== endTypingPayload.userId));
+          setTypingUsers((prev) =>
+            prev.filter((u) => u.id !== endTypingPayload.userId)
+          );
         }
         break;
       // Handle other events as needed
@@ -121,7 +145,7 @@ export default function ChatArea({
   };
 
   const isFileImage = (file: File) => {
-    return file.type.startsWith("image/");
+    return file.type.startsWith('image/');
   };
 
   const handleFiles = (files: File[]) => {
@@ -155,20 +179,26 @@ export default function ChatArea({
           clearInterval(interval);
 
           setUploadingFiles((prev) =>
-            prev.map((item) => (item.id === fileInfo.id ? { ...item, progress: 100, complete: true } : item)),
+            prev.map((item) =>
+              item.id === fileInfo.id
+                ? { ...item, progress: 100, complete: true }
+                : item
+            )
           );
 
           // Send a message with the file info
           setTimeout(() => {
             const fileMessage = fileInfo.isImage
-              ? `[Image: ${fileInfo.file.name}]${fileInfo.previewUrl ? `|${fileInfo.previewUrl}` : ""}`
+              ? `[Image: ${fileInfo.file.name}]${fileInfo.previewUrl ? `|${fileInfo.previewUrl}` : ''}`
               : `[File: ${fileInfo.file.name}]`;
 
             onSendMessage(fileMessage);
 
             // Remove the upload indicator after a delay
             setTimeout(() => {
-              setUploadingFiles((prev) => prev.filter((item) => item.id !== fileInfo.id));
+              setUploadingFiles((prev) =>
+                prev.filter((item) => item.id !== fileInfo.id)
+              );
 
               // Clean up object URLs to prevent memory leaks
               if (fileInfo.previewUrl) {
@@ -177,7 +207,11 @@ export default function ChatArea({
             }, 1000);
           }, 500);
         } else {
-          setUploadingFiles((prev) => prev.map((item) => (item.id === fileInfo.id ? { ...item, progress } : item)));
+          setUploadingFiles((prev) =>
+            prev.map((item) =>
+              item.id === fileInfo.id ? { ...item, progress } : item
+            )
+          );
         }
       }, 200);
     });
@@ -187,7 +221,7 @@ export default function ChatArea({
     if (e.target.files && e.target.files.length > 0) {
       handleFiles(Array.from(e.target.files));
       // Reset the input
-      e.target.value = "";
+      e.target.value = '';
     }
   };
 
@@ -199,7 +233,9 @@ export default function ChatArea({
     if (value.trim() && conversation) {
       const term = value.toLowerCase();
       const matches = conversation.messages.filter(
-        (message) => typeof message.content === "string" && message.content.toLowerCase().includes(term),
+        (message) =>
+          typeof message.content === 'string' &&
+          message.content.toLowerCase().includes(term)
       );
       setSearchResults(matches);
     } else {
@@ -209,18 +245,20 @@ export default function ChatArea({
 
   // Jump to a specific message and highlight it
   const jumpToMessage = (messageId: string) => {
-    setActiveTab("chat");
+    setActiveTab('chat');
 
     // Small delay to ensure the chat view is rendered
     setTimeout(() => {
-      const messageElement = document.getElementById(`message-${messageId}-bubble`);
+      const messageElement = document.getElementById(
+        `message-${messageId}-bubble`
+      );
       if (messageElement) {
-        messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         // Highlight the message briefly
-        messageElement.classList.add("bg-yellow-100");
+        messageElement.classList.add('bg-yellow-100');
         setTimeout(() => {
-          messageElement.classList.remove("bg-yellow-100");
+          messageElement.classList.remove('bg-yellow-100');
         }, 1000);
       }
     }, 100);
@@ -228,25 +266,26 @@ export default function ChatArea({
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    if (activeTab === "chat" && conversation?.messages) {
+    if (activeTab === 'chat' && conversation?.messages) {
       // Only scroll to bottom when a new message is added, not when reactions change
-      const lastMessage = conversation.messages[conversation.messages.length - 1];
+      const lastMessage =
+        conversation.messages[conversation.messages.length - 1];
       const isNewMessage =
         lastMessage &&
         lastMessage.sender.id === currentUser.id &&
         Date.now() - new Date(lastMessage.timestamp).getTime() < 2000;
 
       if (isNewMessage) {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }
     }
   }, [conversation?.messages, activeTab, currentUser.id]);
 
   // Reset search when changing conversations
   useEffect(() => {
-    setSearchTerm("");
+    setSearchTerm('');
     setSearchResults([]);
-    setActiveTab("chat");
+    setActiveTab('chat');
   }, [conversation]);
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -258,7 +297,7 @@ export default function ChatArea({
       // Also send via REST API for persistence
       onSendMessage(message);
 
-      setMessage("");
+      setMessage('');
     }
   };
 
@@ -269,7 +308,7 @@ export default function ChatArea({
 
   const handleDownloadFile = (url: string, fileName: string) => {
     // Create a temporary anchor element
-    const a = document.createElement("a");
+    const a = document.createElement('a');
 
     // Create a blob URL from the image URL
     fetch(url)
@@ -279,8 +318,8 @@ export default function ChatArea({
 
         // Set download attributes
         a.href = blobUrl;
-        a.download = fileName || "download";
-        a.style.display = "none";
+        a.download = fileName || 'download';
+        a.style.display = 'none';
 
         // Add to DOM, trigger click, and clean up
         document.body.appendChild(a);
@@ -291,7 +330,7 @@ export default function ChatArea({
         document.body.removeChild(a);
       })
       .catch((error) => {
-        console.error("Error downloading file:", error);
+        console.error('Error downloading file:', error);
       });
   };
 
@@ -337,16 +376,16 @@ export default function ChatArea({
 
   // Function to parse message content for files and images
   const renderMessageContent = (content: string) => {
-    if (content.startsWith("[Image:")) {
-      const parts = content.split("|");
+    if (content.startsWith('[Image:')) {
+      const parts = content.split('|');
       const imageName = parts[0].substring(8, parts[0].length - 1);
       const imageUrl = parts[1];
 
       return (
         <div className="space-y-2">
           <div className="relative group">
-            <img
-              src={imageUrl || "/placeholder.svg"}
+            <Image
+              src={imageUrl || '/placeholder.svg'}
               alt={imageName}
               className="max-w-full rounded-md max-h-60 object-contain cursor-pointer"
               onClick={() => openLightbox(imageUrl, imageName)}
@@ -380,18 +419,24 @@ export default function ChatArea({
           </div>
         </div>
       );
-    } else if (content.startsWith("[File:")) {
+    } else if (content.startsWith('[File:')) {
       const fileName = content.substring(7, content.length - 1);
 
       return (
         <div className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 flex items-center justify-center bg-primary/10 rounded">
-              <span className="text-xs font-medium">{fileName.split(".").pop()?.toUpperCase()}</span>
+              <span className="text-xs font-medium">
+                {fileName.split('.').pop()?.toUpperCase()}
+              </span>
             </div>
             <span className="text-sm truncate max-w-[150px]">{fileName}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => handleDownloadFile("/placeholder.svg", fileName)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDownloadFile('/placeholder.svg', fileName)}
+          >
             <Download className="h-4 w-4" />
           </Button>
         </div>
@@ -441,7 +486,9 @@ export default function ChatArea({
       <div className="flex-1 flex items-center justify-center bg-muted/20">
         <div className="text-center">
           <h2 className="text-2xl font-semibold mb-2">Welcome to Chat App</h2>
-          <p className="text-muted-foreground">Select a conversation or start a new one</p>
+          <p className="text-muted-foreground">
+            Select a conversation or start a new one
+          </p>
           <div className="mt-2 mb-4">{connectionStatusIndicator()}</div>
           <Button className="mt-4 lg:hidden" onClick={onToggleSidebar}>
             View Conversations
@@ -456,16 +503,23 @@ export default function ChatArea({
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-2rem)] max-h-screen m-4 bg-background shadow-lg rounded-md overflow-hidden">
       <div className="flex items-center justify-between p-4 border-b">
-        {activeTab === "chat" && (
+        {activeTab === 'chat' && (
           <>
             <div className="flex items-center">
-              <Button variant="ghost" size="icon" className="mr-2 lg:hidden" onClick={onToggleSidebar}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mr-2 lg:hidden"
+                onClick={onToggleSidebar}
+              >
                 <Menu className="h-5 w-5" />
               </Button>
               <div className="relative">
                 <Avatar className="h-10 w-10 mr-3">
                   <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback>{conversation.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>
+                    {conversation.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
               </div>
               <div className="min-w-0">
@@ -493,11 +547,19 @@ export default function ChatArea({
             </div>
             <div className="flex items-center gap-2">
               {connectionStatusIndicator()}
-              <Button variant="ghost" size="icon" onClick={() => setActiveTab("search")}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setActiveTab('search')}
+              >
                 <Search className="h-5 w-5" />
               </Button>
               {conversation.isGroup && (
-                <Button variant="ghost" size="icon" onClick={() => setActiveTab("members")}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setActiveTab('members')}
+                >
                   <Users className="h-5 w-5" />
                 </Button>
               )}
@@ -505,18 +567,28 @@ export default function ChatArea({
           </>
         )}
 
-        {activeTab === "members" && (
+        {activeTab === 'members' && (
           <div className="flex items-center w-full">
-            <Button variant="ghost" size="icon" className="mr-2" onClick={() => setActiveTab("chat")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2"
+              onClick={() => setActiveTab('chat')}
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h2 className="font-semibold">Group Members</h2>
           </div>
         )}
 
-        {activeTab === "search" && (
+        {activeTab === 'search' && (
           <div className="flex items-center w-full">
-            <Button variant="ghost" size="icon" className="mr-2" onClick={() => setActiveTab("chat")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2"
+              onClick={() => setActiveTab('chat')}
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h2 className="font-semibold">Search Messages</h2>
@@ -524,12 +596,13 @@ export default function ChatArea({
         )}
       </div>
 
-      {activeTab === "chat" && (
+      {activeTab === 'chat' && (
         <div
           ref={chatContainerRef}
           className={cn(
-            "flex-1 overflow-y-auto p-4 space-y-4 relative",
-            isDraggingFile && "bg-primary/5 border-2 border-dashed border-primary/50",
+            'flex-1 overflow-y-auto p-4 space-y-4 relative',
+            isDraggingFile &&
+              'bg-primary/5 border-2 border-dashed border-primary/50'
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -561,15 +634,19 @@ export default function ChatArea({
             <div
               key={fileInfo.id}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg ml-auto max-w-[80%]",
-                fileInfo.complete ? "bg-primary/10" : "bg-muted",
+                'flex items-center gap-3 p-3 rounded-lg ml-auto max-w-[80%]',
+                fileInfo.complete ? 'bg-primary/10' : 'bg-muted'
               )}
             >
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium truncate">{fileInfo.file.name}</span>
+                  <span className="text-sm font-medium truncate">
+                    {fileInfo.file.name}
+                  </span>
                   <span className="text-xs text-muted-foreground">
-                    {fileInfo.complete ? "Uploaded" : `${Math.round(fileInfo.progress)}%`}
+                    {fileInfo.complete
+                      ? 'Uploaded'
+                      : `${Math.round(fileInfo.progress)}%`}
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted-foreground/20 overflow-hidden">
@@ -588,43 +665,62 @@ export default function ChatArea({
         </div>
       )}
 
-      {activeTab === "members" && (
+      {activeTab === 'members' && (
         <div className="p-4 flex-1 overflow-y-auto">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-16 w-16">
               <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>{conversation.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>
+                {conversation.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div>
               <h2 className="text-xl font-semibold">{conversation.name}</h2>
-              <p className="text-sm text-muted-foreground">{conversation.members.length} members</p>
+              <p className="text-sm text-muted-foreground">
+                {conversation.members.length} members
+              </p>
             </div>
           </div>
 
           <div className="space-y-2">
             {conversation.members.map((member) => (
-              <div key={member.id} className="flex items-center justify-between p-2 rounded-md hover:bg-accent">
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-2 rounded-md hover:bg-accent"
+              >
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarImage src={member.avatar || '/placeholder.svg'} />
+                      <AvatarFallback>
+                        {member.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
-                    <OnlineStatus isOnline={member.isOnline || false} className="absolute bottom-0 right-0" />
+                    <OnlineStatus
+                      isOnline={member.isOnline || false}
+                      className="absolute bottom-0 right-0"
+                    />
                   </div>
                   <div>
                     <p className="font-medium">{member.name}</p>
-                    {member.id === currentUser.id && <p className="text-xs text-muted-foreground">You</p>}
+                    {member.id === currentUser.id && (
+                      <p className="text-xs text-muted-foreground">You</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   {member.isOnline && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 text-green-700 border-green-200"
+                    >
                       Online
                     </Badge>
                   )}
-                  {member.id === currentUser.id && <Badge variant="outline">You</Badge>}
+                  {member.id === currentUser.id && (
+                    <Badge variant="outline">You</Badge>
+                  )}
                 </div>
               </div>
             ))}
@@ -632,7 +728,7 @@ export default function ChatArea({
         </div>
       )}
 
-      {activeTab === "search" && (
+      {activeTab === 'search' && (
         <div className="p-4 flex-1 overflow-y-auto">
           <div className="flex items-center space-x-2 mb-4">
             <div className="relative flex-1">
@@ -648,7 +744,7 @@ export default function ChatArea({
                   variant="ghost"
                   size="icon"
                   className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2"
-                  onClick={() => setSearchTerm("")}
+                  onClick={() => setSearchTerm('')}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -665,28 +761,38 @@ export default function ChatArea({
                   onClick={() => jumpToMessage(message.id)}
                 >
                   <Avatar className="h-8 w-8 mt-1">
-                    <AvatarImage src={message.sender.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>{message.sender.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={message.sender.avatar || '/placeholder.svg'}
+                    />
+                    <AvatarFallback>
+                      {message.sender.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className="font-medium text-sm">{message.sender.name}</span>
+                      <span className="font-medium text-sm">
+                        {message.sender.name}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        {new Intl.DateTimeFormat("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "numeric",
+                        {new Intl.DateTimeFormat('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: 'numeric',
                           hour12: true,
                         }).format(message.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm">{highlightText(message.content, searchTerm)}</p>
+                    <p className="text-sm">
+                      {highlightText(message.content, searchTerm)}
+                    </p>
                   </div>
                 </div>
               ))
             ) : searchTerm ? (
-              <div className="text-center p-4 text-muted-foreground">No messages found</div>
+              <div className="text-center p-4 text-muted-foreground">
+                No messages found
+              </div>
             ) : null}
           </div>
         </div>
@@ -698,11 +804,22 @@ export default function ChatArea({
             <div className="flex items-center justify-center h-10 w-10 rounded-md hover:bg-muted transition-colors">
               <Paperclip className="h-5 w-5" />
             </div>
-            <input id="file-upload" type="file" multiple className="hidden" onChange={handleFileInputChange} />
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileInputChange}
+            />
           </label>
 
           <div className="relative flex-1">
-            <Input value={message} onChange={handleMessageChange} placeholder="Type a message..." className="pr-10" />
+            <Input
+              value={message}
+              onChange={handleMessageChange}
+              placeholder="Type a message..."
+              className="pr-10"
+            />
             <Button
               type="button"
               variant="ghost"
@@ -715,12 +832,19 @@ export default function ChatArea({
 
             {isEmojiPickerOpen && (
               <div className="absolute bottom-full right-0 mb-2">
-                <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setIsEmojiPickerOpen(false)} />
+                <EmojiPicker
+                  onSelect={handleEmojiSelect}
+                  onClose={() => setIsEmojiPickerOpen(false)}
+                />
               </div>
             )}
           </div>
 
-          <Button type="submit" size="icon" disabled={!message.trim() || connectionStatus !== ReadyState.OPEN}>
+          <Button
+            type="submit"
+            size="icon"
+            disabled={!message.trim() || connectionStatus !== ReadyState.OPEN}
+          >
             <Send className="h-5 w-5" />
           </Button>
         </form>
@@ -728,7 +852,7 @@ export default function ChatArea({
 
       {lightboxImage && (
         <ImageLightbox
-          src={lightboxImage.src || "/placeholder.svg"}
+          src={lightboxImage.src || '/placeholder.svg'}
           alt={lightboxImage.alt}
           onClose={() => setLightboxImage(null)}
           onDownload={handleDownloadFile}
@@ -742,7 +866,7 @@ export default function ChatArea({
 function highlightText(text: string, term: string) {
   if (!term.trim()) return text;
 
-  const regex = new RegExp(`(${term})`, "gi");
+  const regex = new RegExp(`(${term})`, 'gi');
   const parts = text.split(regex);
 
   return parts.map((part, i) =>
@@ -752,6 +876,6 @@ function highlightText(text: string, term: string) {
       </mark>
     ) : (
       part
-    ),
+    )
   );
 }

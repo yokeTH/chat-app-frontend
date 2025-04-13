@@ -1,36 +1,46 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import Sidebar from "@/components/sidebar";
-import ChatArea from "@/components/chat-area";
-import { WebSocketProvider } from "@/contexts/websocket-context";
-import { type Conversation, type Message, type User, mockConversations, mockUsers } from "@/lib/mock-data";
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import Sidebar from '@/components/sidebar';
+import ChatArea from '@/components/chat-area';
+import { WebSocketProvider } from '@/contexts/websocket-context';
+import {
+  type Conversation,
+  type Message,
+  type User,
+  mockConversations,
+  mockUsers,
+} from '@/lib/mock-data';
 
 interface ChatLayoutProps {
   initialChatId?: string;
 }
 
 export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
-  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [conversations, setConversations] =
+    useState<Conversation[]>(mockConversations);
+  const [activeConversation, setActiveConversation] =
+    useState<Conversation | null>(null);
   const [currentUser] = useState<User>(mockUsers[0]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const pathname = usePathname();
 
   // Fetch conversations from API
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const response = await fetch("/api/conversations");
+        const response = await fetch('/api/conversations');
         const data = await response.json();
         if (data.conversations) {
           setConversations(data.conversations);
         }
       } catch (error) {
-        console.error("Failed to fetch conversations:", error);
+        console.error('Failed to fetch conversations:', error);
       }
     };
 
@@ -52,7 +62,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     setActiveConversation(conversation);
 
     // Update the URL without using router.push
-    window.history.pushState({}, "", `/chat/${conversation.id}`);
+    window.history.pushState({}, '', `/chat/${conversation.id}`);
 
     if (!isDesktop) {
       setSidebarOpen(false);
@@ -78,14 +88,18 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     };
 
     setActiveConversation(updatedConversation);
-    setConversations(conversations.map((conv) => (conv.id === activeConversation.id ? updatedConversation : conv)));
+    setConversations(
+      conversations.map((conv) =>
+        conv.id === activeConversation.id ? updatedConversation : conv
+      )
+    );
 
     // Send to API
     try {
       await fetch(`/api/conversations/${activeConversation.id}/messages`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           content,
@@ -93,7 +107,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
         }),
       });
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error('Failed to send message:', error);
     }
   };
 
@@ -104,13 +118,17 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     const updatedMessages = activeConversation.messages.map((message) => {
       if (message.id === messageId) {
         // Check if user already reacted with this emoji
-        const existingReaction = message.reactions.find((r) => r.emoji === emoji && r.user.id === currentUser.id);
+        const existingReaction = message.reactions.find(
+          (r) => r.emoji === emoji && r.user.id === currentUser.id
+        );
 
         if (existingReaction) {
           // Remove reaction if it already exists
           return {
             ...message,
-            reactions: message.reactions.filter((r) => !(r.emoji === emoji && r.user.id === currentUser.id)),
+            reactions: message.reactions.filter(
+              (r) => !(r.emoji === emoji && r.user.id === currentUser.id)
+            ),
           };
         } else {
           // Add new reaction
@@ -129,18 +147,25 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     };
 
     setActiveConversation(updatedConversation);
-    setConversations(conversations.map((conv) => (conv.id === activeConversation.id ? updatedConversation : conv)));
+    setConversations(
+      conversations.map((conv) =>
+        conv.id === activeConversation.id ? updatedConversation : conv
+      )
+    );
   };
 
   const handleCreateConversation = async (users: User[], name?: string) => {
     // If it's a DM (single user), check if conversation already exists
     if (users.length === 1) {
-      const existingDM = conversations.find((conv) => !conv.isGroup && conv.members.some((m) => m.id === users[0].id));
+      const existingDM = conversations.find(
+        (conv) =>
+          !conv.isGroup && conv.members.some((m) => m.id === users[0].id)
+      );
 
       if (existingDM) {
         // Use existing conversation instead of creating a new one
         setActiveConversation(existingDM);
-        window.history.pushState({}, "", `/chat/${existingDM.id}`);
+        window.history.pushState({}, '', `/chat/${existingDM.id}`);
 
         if (!isDesktop) {
           setSidebarOpen(false);
@@ -151,13 +176,13 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
     // Create new conversation
     try {
-      const response = await fetch("/api/conversations", {
-        method: "POST",
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: name || (users.length === 1 ? users[0].name : "New Group"),
+          name: name || (users.length === 1 ? users[0].name : 'New Group'),
           members: [...users.map((u) => u.id), currentUser.id],
           isGroup: users.length > 1,
         }),
@@ -175,14 +200,14 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
         setConversations([newConversation, ...conversations]);
         setActiveConversation(newConversation);
-        window.history.pushState({}, "", `/chat/${newConversation.id}`);
+        window.history.pushState({}, '', `/chat/${newConversation.id}`);
 
         if (!isDesktop) {
           setSidebarOpen(false);
         }
       }
     } catch (error) {
-      console.error("Failed to create conversation:", error);
+      console.error('Failed to create conversation:', error);
     }
   };
 

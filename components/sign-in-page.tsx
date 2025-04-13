@@ -1,15 +1,26 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import SignIn from "@/components/sign-in-button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import SignIn from '@/components/sign-in-button';
 
 export default function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to Chat App</CardTitle>
-          <CardDescription>Sign in to continue to your conversations</CardDescription>
+          <CardTitle className="text-2xl font-bold">
+            Welcome to Chat App
+          </CardTitle>
+          <CardDescription>
+            Sign in to continue to your conversations
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
           <SignIn />
