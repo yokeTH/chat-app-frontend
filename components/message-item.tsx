@@ -22,7 +22,7 @@ interface MessageItemProps {
     id: string;
     content: string | React.JSX.Element;
     sender: User;
-    timestamp: Date;
+    created_at: Date;
     reactions: Reaction[];
   };
   isOwnMessage: boolean;
@@ -49,12 +49,11 @@ export default function MessageItem({
   };
 
   const formatTime = (date: Date) => {
-    // return new Intl.DateTimeFormat("en-US", {
-    //   hour: "numeric",
-    //   minute: "numeric",
-    //   hour12: true,
-    // }).format(date)
-    return date.toLocaleString();
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    }).format(date);
   };
 
   // Check if current user has reacted with a specific emoji
@@ -97,6 +96,7 @@ export default function MessageItem({
       onMouseEnter={() => setShowReactions(true)}
       onMouseLeave={() => setShowReactions(false)}
     >
+      {/* {message.sender.avatar} */}
       <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
         <AvatarImage src={message.sender.avatar} />
         <AvatarFallback>
@@ -110,7 +110,7 @@ export default function MessageItem({
             <span className="text-sm font-medium">{message.sender.name}</span>
           )}
           <span className="text-xs text-muted-foreground">
-            {formatTime(message.timestamp)}
+            {formatTime(new Date(message.created_at))}
           </span>
         </div>
 

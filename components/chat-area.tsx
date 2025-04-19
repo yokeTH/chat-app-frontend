@@ -33,7 +33,6 @@ import Image from 'next/image';
 interface ChatAreaProps {
   conversation: Conversation | null;
   currentUser: User;
-  onSendMessage: (content: string) => void;
   onAddReaction: (messageId: string, emoji: string) => void;
   onToggleSidebar: () => void;
   isSidebarOpen: boolean;
@@ -42,11 +41,11 @@ interface ChatAreaProps {
 export default function ChatArea({
   conversation,
   currentUser,
-  onSendMessage,
   onAddReaction,
   onToggleSidebar,
   // isSidebarOpen,
 }: ChatAreaProps) {
+  const { messagesEndRef } = useWebSocketContext();
   const [message, setMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState<User[]>([]);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
@@ -54,7 +53,6 @@ export default function ChatArea({
   const [activeTab, setActiveTab] = useState('chat');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [lightboxImage, setLightboxImage] = useState<{
     src: string;
@@ -192,8 +190,6 @@ export default function ChatArea({
               ? `[Image: ${fileInfo.file.name}]${fileInfo.previewUrl ? `|${fileInfo.previewUrl}` : ''}`
               : `[File: ${fileInfo.file.name}]`;
 
-            onSendMessage(fileMessage);
-
             // Remove the upload indicator after a delay
             setTimeout(() => {
               setUploadingFiles((prev) =>
@@ -264,22 +260,13 @@ export default function ChatArea({
     }, 100);
   };
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (activeTab === 'chat' && conversation?.messages) {
-      // Only scroll to bottom when a new message is added, not when reactions change
-      const lastMessage =
-        conversation.messages[conversation.messages.length - 1];
-      const isNewMessage =
-        lastMessage &&
-        lastMessage.sender.id === currentUser.id &&
-        Date.now() - new Date(lastMessage.timestamp).getTime() < 2000;
-
-      if (isNewMessage) {
+      setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
+      }, 100);
     }
-  }, [conversation?.messages, activeTab, currentUser.id]);
+  }, [conversation?.messages, activeTab]);
 
   // Reset search when changing conversations
   useEffect(() => {
@@ -291,12 +278,7 @@ export default function ChatArea({
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && conversation) {
-      // Send via WebSocket
       wsSendMessage(conversation.id, message);
-
-      // Also send via REST API for persistence
-      onSendMessage(message);
-
       setMessage('');
     }
   };
@@ -620,16 +602,23 @@ export default function ChatArea({
           )}
 
           {conversation.messages.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={{
-                ...message,
-                content: renderMessageContent(message.content),
-              }}
-              isOwnMessage={message.sender.id === currentUser.id}
-              onAddReaction={(emoji) => handleAddReaction(message.id, emoji)}
-              currentUser={currentUser}
-            />
+            <>
+              {/* {JSON.stringify(message)} */}
+              {message && (
+                <MessageItem
+                  key={message.id}
+                  message={{
+                    ...message,
+                    content: renderMessageContent(message?.content),
+                  }}
+                  isOwnMessage={message.sender.id === currentUser.id}
+                  onAddReaction={(emoji) =>
+                    handleAddReaction(message.id, emoji)
+                  }
+                  currentUser={currentUser}
+                />
+              )}
+            </>
           ))}
 
           {uploadingFiles.map((fileInfo) => (
@@ -663,7 +652,7 @@ export default function ChatArea({
 
           {typingUsers.length > 0 && <TypingIndicator users={typingUsers} />}
 
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} id="end" />
         </div>
       )}
 
@@ -782,7 +771,7 @@ export default function ChatArea({
                           hour: 'numeric',
                           minute: 'numeric',
                           hour12: true,
-                        }).format(message.timestamp)}
+                        }).format(message.created_at)}
                       </span>
                     </div>
                     <p className="text-sm">

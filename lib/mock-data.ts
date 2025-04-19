@@ -14,7 +14,7 @@ export interface Message {
   id: string;
   content: string;
   sender: User;
-  timestamp: Date;
+  created_at: Date;
   reactions: Reaction[];
 }
 
@@ -72,13 +72,13 @@ const createMessage = (
   id: string,
   content: string,
   sender: User,
-  timestamp: Date,
+  created_at: Date,
   reactions: Reaction[] = []
 ): Message => ({
   id,
   content,
   sender,
-  timestamp,
+  created_at,
   reactions,
 });
 
@@ -125,7 +125,7 @@ export const mockConversations: Conversation[] = [
       ),
       createMessage(
         'msg-5',
-        `[Image: project-mockup.jpg]|${sampleImages[0]}`,
+        `HAHAHAHAHA[Image: project-mockup.jpg]|${sampleImages[0]}`,
         mockUsers[0],
         new Date(Date.now() - 3600000 * 20),
         [{ emoji: '🔥', user: mockUsers[1] }]

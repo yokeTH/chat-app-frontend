@@ -5,7 +5,10 @@ import { redirect, usePathname } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import Sidebar from '@/components/sidebar';
 import ChatArea from '@/components/chat-area';
-import { WebSocketProvider } from '@/contexts/websocket-context';
+import {
+  useWebSocketContext,
+  WebSocketProvider,
+} from '@/contexts/websocket-context';
 import {
   type Conversation,
   type Message,
@@ -14,17 +17,25 @@ import {
   mockUsers,
 } from '@/lib/mock-data';
 import { useSession } from 'next-auth/react';
+import { fetchConversation } from '@/actions/conversation/get';
+import { fetchUsers } from '@/actions/users/get';
+import { createConversation } from '@/actions/conversation/create';
+import { fetchUsersMe } from '@/actions/users/me';
 
 interface ChatLayoutProps {
   initialChatId?: string;
 }
 
 export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
-  const [conversations, setConversations] =
-    useState<Conversation[]>(mockConversations);
-  const [activeConversation, setActiveConversation] =
-    useState<Conversation | null>(null);
-  const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
+  const {
+    conversations,
+    setConversations,
+    currentUser,
+    setCurrentUser,
+    activeConversation,
+    setActiveConversation,
+  } = useWebSocketContext();
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { data: session, status } = useSession();
@@ -36,31 +47,24 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
       isOnline: true,
     };
     setCurrentUser(user);
-  }, []);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const pathname = usePathname();
+  }, [session]);
 
   // Fetch conversations from API
   useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const response = await fetch('/api/conversations');
-        const data = await response.json();
-        if (data.conversations) {
-          setConversations(data.conversations);
-        }
-      } catch (error) {
-        console.error('Failed to fetch conversations:', error);
-      }
-    };
-
-    fetchConversations();
+    fetchConversation().then((data) => {
+      console.log('conversation:', data);
+      setConversations(data ?? []);
+    });
+    fetchUsers().then((data) => setAvailableUsers(data ?? []));
+    fetchUsersMe().then((data) => {
+      console.log('My user info:', data);
+      setCurrentUser(data);
+    });
   }, []);
 
   // Set initial active conversation based on URL or default to first conversation
   useEffect(() => {
-    if (initialChatId) {
+    if (initialChatId && conversations.length > 0) {
       const conversation = conversations.find((c) => c.id === initialChatId);
       if (conversation) {
         setActiveConversation(conversation);
@@ -77,48 +81,6 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
     if (!isDesktop) {
       setSidebarOpen(false);
-    }
-  };
-
-  const handleNewMessage = async (content: string) => {
-    if (!activeConversation) return;
-
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      content,
-      sender: currentUser,
-      timestamp: new Date(),
-      reactions: [],
-    };
-
-    // Optimistically update UI
-    const updatedConversation = {
-      ...activeConversation,
-      messages: [...activeConversation.messages, newMessage],
-      lastMessage: newMessage,
-    };
-
-    setActiveConversation(updatedConversation);
-    setConversations(
-      conversations.map((conv) =>
-        conv.id === activeConversation.id ? updatedConversation : conv
-      )
-    );
-
-    // Send to API
-    try {
-      await fetch(`/api/conversations/${activeConversation.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-          sender: currentUser,
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to send message:', error);
     }
   };
 
@@ -159,8 +121,10 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
     setActiveConversation(updatedConversation);
     setConversations(
-      conversations.map((conv) =>
-        conv.id === activeConversation.id ? updatedConversation : conv
+      conversations.map((conversation) =>
+        conversation.id === activeConversation.id
+          ? updatedConversation
+          : conversation
       )
     );
   };
@@ -169,8 +133,9 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     // If it's a DM (single user), check if conversation already exists
     if (users.length === 1) {
       const existingDM = conversations.find(
-        (conv) =>
-          !conv.isGroup && conv.members.some((m) => m.id === users[0].id)
+        (conversation) =>
+          !conversation.isGroup &&
+          conversation.members.some((m) => m.id === users[0].id)
       );
 
       if (existingDM) {
@@ -187,26 +152,20 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
     // Create new conversation
     try {
-      const response = await fetch('/api/conversations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name || (users.length === 1 ? users[0].name : 'New Group'),
-          members: [...users.map((u) => u.id), currentUser.id],
-          isGroup: users.length > 1,
-        }),
-      });
+      console.log([...users.map((u) => u.id), currentUser.id]);
+      const data = await createConversation(
+        [...users.map((u) => u.id), currentUser.id],
+        name || (users.length === 1 ? users[0].name : 'New Group')
+      );
 
-      const data = await response.json();
-
-      if (data.conversation) {
+      if (data) {
         const newConversation = {
-          ...data.conversation,
+          id: data.id,
+          name: data.name,
           members: [...users, currentUser],
           messages: [],
           lastMessage: null,
+          isGroup: !(users.length === 1),
         };
 
         setConversations([newConversation, ...conversations]);
@@ -222,32 +181,29 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     }
   };
 
-  if (status == 'loading' || status == 'unauthenticated') {
+  if (status === 'loading' || status === 'unauthenticated') {
     redirect('/');
-    return;
   }
+
   return (
-    <WebSocketProvider user={currentUser}>
-      {/* <pre>{JSON.stringify(currentUser)}</pre> */}
-      <div className="flex h-screen w-screen overflow-hidden bg-muted">
-        <Sidebar
-          conversations={conversations}
-          activeConversation={activeConversation}
-          onSelectConversation={handleSelectConversation}
-          onCreateConversation={handleCreateConversation}
-          currentUser={currentUser}
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-        />
-        <ChatArea
-          conversation={activeConversation}
-          currentUser={currentUser}
-          onSendMessage={handleNewMessage}
-          onAddReaction={handleAddReaction}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-          isSidebarOpen={sidebarOpen}
-        />
-      </div>
-    </WebSocketProvider>
+    <div className="flex h-screen w-screen overflow-hidden bg-muted">
+      <Sidebar
+        availableUsers={availableUsers}
+        conversations={conversations}
+        activeConversation={activeConversation}
+        onSelectConversation={handleSelectConversation}
+        onCreateConversation={handleCreateConversation}
+        currentUser={currentUser}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
+      <ChatArea
+        conversation={activeConversation}
+        currentUser={currentUser}
+        onAddReaction={handleAddReaction}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        isSidebarOpen={sidebarOpen}
+      />
+    </div>
   );
 }
