@@ -5,10 +5,15 @@ interface HandleUserStatus {
   payload: UserStatusEvent;
   setAvailableUsers: React.Dispatch<React.SetStateAction<User[]>>;
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
+  setActiveConversation: React.Dispatch<React.SetStateAction<Conversation | null>>;
 }
 
-export function handleUserStatus({ payload, setAvailableUsers, setConversations }: HandleUserStatus) {
-  // This part looks good - updates available users
+export function handleUserStatus({
+  payload,
+  setAvailableUsers,
+  setConversations,
+  setActiveConversation,
+}: HandleUserStatus) {
   setAvailableUsers((prev) => {
     const filteredUsers = prev.filter((user) => user.id == payload.userId);
     const updatedUsers = filteredUsers.map((user) => ({
@@ -28,6 +33,14 @@ export function handleUserStatus({ payload, setAvailableUsers, setConversations 
         return member?.id == payload.userId ? { ...member, is_online: payload.status === 'online' } : member;
       }),
     }));
+
+    if (updatedConversation.length > 0) {
+      setActiveConversation((prevActive) => {
+        if (!prevActive) return prevActive;
+        const matchingConversation = updatedConversation.find((conv) => conv.id === prevActive.id);
+        return matchingConversation || prevActive;
+      });
+    }
 
     return [
       ...prev.filter((conversation) => !conversation.members.some((user) => payload.userId == user?.id)),

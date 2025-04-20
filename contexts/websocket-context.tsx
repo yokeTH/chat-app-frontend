@@ -121,6 +121,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             payload: m.payload,
             setAvailableUsers,
             setConversations,
+            setActiveConversation,
           });
           break;
         default:
