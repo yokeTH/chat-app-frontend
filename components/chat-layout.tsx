@@ -5,10 +5,7 @@ import { redirect, usePathname } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import Sidebar from '@/components/sidebar';
 import ChatArea from '@/components/chat-area';
-import {
-  useWebSocketContext,
-  WebSocketProvider,
-} from '@/contexts/websocket-context';
+import { useWebSocketContext, WebSocketProvider } from '@/contexts/websocket-context';
 import { type Conversation, type Message, type User } from '@/lib/mock-data';
 import { useSession } from 'next-auth/react';
 import { fetchConversation } from '@/actions/conversation/get';
@@ -28,8 +25,9 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     setCurrentUser,
     activeConversation,
     setActiveConversation,
+    availableUsers,
+    setAvailableUsers,
   } = useWebSocketContext();
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { data: session, status } = useSession();
@@ -85,17 +83,13 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     const updatedMessages = activeConversation.messages.map((message) => {
       if (message.id === messageId) {
         // Check if user already reacted with this emoji
-        const existingReaction = message.reactions.find(
-          (r) => r.emoji === emoji && r.user.id === currentUser?.id
-        );
+        const existingReaction = message.reactions.find((r) => r.emoji === emoji && r.user.id === currentUser?.id);
 
         if (existingReaction) {
           // Remove reaction if it already exists
           return {
             ...message,
-            reactions: message.reactions.filter(
-              (r) => !(r.emoji === emoji && r.user.id === currentUser?.id)
-            ),
+            reactions: message.reactions.filter((r) => !(r.emoji === emoji && r.user.id === currentUser?.id)),
           };
         } else {
           // Add new reaction
@@ -116,9 +110,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     setActiveConversation(updatedConversation);
     setConversations(
       conversations.map((conversation) =>
-        conversation.id === activeConversation.id
-          ? updatedConversation
-          : conversation
+        conversation.id === activeConversation.id ? updatedConversation : conversation
       )
     );
   };
@@ -127,9 +119,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
     // If it's a DM (single user), check if conversation already exists
     if (users.length === 1) {
       const existingDM = conversations.find(
-        (conversation) =>
-          !conversation.isGroup &&
-          conversation.members.some((m) => m?.id === users[0].id)
+        (conversation) => !conversation.isGroup && conversation.members.some((m) => m?.id === users[0].id)
       );
 
       if (existingDM) {
