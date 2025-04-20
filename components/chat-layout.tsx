@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { redirect, usePathname } from 'next/navigation';
+import { redirect, usePathname, useRouter } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import Sidebar from '@/components/sidebar';
 import ChatArea from '@/components/chat-area';
@@ -13,11 +13,7 @@ import { fetchUsers } from '@/actions/users/get';
 import { createConversation } from '@/actions/conversation/create';
 import { fetchUsersMe } from '@/actions/users/me';
 
-interface ChatLayoutProps {
-  initialChatId?: string;
-}
-
-export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
+export default function ChatLayout() {
   const {
     conversations,
     setConversations,
@@ -31,12 +27,14 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { data: session, status } = useSession();
+  const path = usePathname();
+
   useEffect(() => {
     const user: User = {
       id: session?.user?.id ?? '',
       name: session?.user?.name ?? '',
       avatar: session?.user?.image ?? '',
-      isOnline: true,
+      is_online: true,
     };
     setCurrentUser(user);
   }, [session]);
@@ -47,7 +45,10 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
       console.log('conversation:', data);
       setConversations(data ?? []);
     });
-    fetchUsers().then((data) => setAvailableUsers(data ?? []));
+    fetchUsers().then((data) => {
+      console.log('fetchUsers:', data);
+      setAvailableUsers(data ?? []);
+    });
     fetchUsersMe().then((data) => {
       console.log('My user info:', data);
       setCurrentUser(data);
@@ -56,13 +57,14 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
   // Set initial active conversation based on URL or default to first conversation
   useEffect(() => {
-    if (initialChatId && conversations.length > 0) {
-      const conversation = conversations.find((c) => c.id === initialChatId);
+    const parts = path.split('/');
+    if (parts.length == 3 && parts[1] === 'chat') {
+      const conversation = conversations.find((c) => c.id === parts[2]);
       if (conversation) {
         setActiveConversation(conversation);
       }
     }
-  }, [initialChatId]);
+  }, [path, conversations]);
 
   // On mobile, selecting a conversation should close the sidebar
   const handleSelectConversation = (conversation: Conversation) => {

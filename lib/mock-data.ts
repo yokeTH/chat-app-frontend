@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   avatar: string;
-  isOnline?: boolean;
+  is_online?: boolean;
 }
 
 export interface Reaction {

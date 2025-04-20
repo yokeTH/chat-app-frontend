@@ -219,7 +219,7 @@ export default function MessageItem({ message, isOwnMessage, onAddReaction }: Me
                         <AvatarImage src={user.avatar} />
                         <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
-                      <OnlineStatus isOnline={user.isOnline || false} className="absolute bottom-0 right-0" />
+                      <OnlineStatus isOnline={user.is_online || false} className="absolute bottom-0 right-0" />
                     </div>
                     <div>
                       <p className="font-medium">{user.name}</p>

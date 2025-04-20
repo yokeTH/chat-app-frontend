@@ -432,7 +432,7 @@ export default function ChatArea({
                     `${activeConversation.members.length} members`
                   ) : (
                     <>
-                      {otherUser?.isOnline ? (
+                      {otherUser?.is_online ? (
                         <>
                           <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block mr-1"></span>
                           Online
@@ -566,7 +566,7 @@ export default function ChatArea({
                       <AvatarImage src={member?.avatar || '/placeholder.svg'} />
                       <AvatarFallback>{member?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
-                    <OnlineStatus isOnline={member?.isOnline || false} className="absolute bottom-0 right-0" />
+                    <OnlineStatus isOnline={member?.is_online || false} className="absolute bottom-0 right-0" />
                   </div>
                   <div>
                     <p className="font-medium">{member?.name}</p>
@@ -575,7 +575,7 @@ export default function ChatArea({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {member?.isOnline && (
+                  {member?.is_online && (
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                       Online
                     </Badge>

@@ -14,19 +14,12 @@ interface ReactionDetailsProps {
   onClose: () => void;
 }
 
-export default function ReactionDetails({
-  reaction,
-  users,
-  onClose,
-}: ReactionDetailsProps) {
+export default function ReactionDetails({ reaction, users, onClose }: ReactionDetailsProps) {
   const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        detailsRef.current &&
-        !detailsRef.current.contains(event.target as Node)
-      ) {
+      if (detailsRef.current && !detailsRef.current.contains(event.target as Node)) {
         onClose();
       }
     }
@@ -38,50 +31,35 @@ export default function ReactionDetails({
   }, [onClose]);
 
   return (
-    <Card
-      ref={detailsRef}
-      className="absolute z-10 mt-1 p-2 shadow-lg max-w-xs w-full"
-    >
+    <Card ref={detailsRef} className="absolute z-10 mt-1 p-2 shadow-lg max-w-xs w-full">
       <div className="flex items-center justify-between mb-2 p-2 border-b">
         <div className="flex items-center gap-2">
           <span className="text-lg">{reaction}</span>
           <span className="text-sm font-medium">{users.length}</span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={onClose}
-        >
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
       <div className="max-h-40 overflow-y-auto">
         {users.map((user) => (
-          <div
-            key={user.id}
-            className="flex items-center justify-between p-2 hover:bg-accent rounded-md"
-          >
+          <div key={user.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-md">
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={user.avatar} />
-                  <AvatarFallback>
-                    {user.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                {user.isOnline !== undefined && (
+                {user.is_online !== undefined && (
                   <OnlineStatus
-                    isOnline={user.isOnline}
+                    isOnline={user.is_online}
                     className="absolute -bottom-0.5 -right-0.5 h-2 w-2 border border-background"
                   />
                 )}
               </div>
               <span className="text-sm">{user.name}</span>
             </div>
-            {user.isOnline && (
-              <span className="text-xs text-green-600">Online</span>
-            )}
+            {user.is_online && <span className="text-xs text-green-600">Online</span>}
           </div>
         ))}
       </div>
