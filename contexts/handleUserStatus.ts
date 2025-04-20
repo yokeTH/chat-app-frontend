@@ -25,7 +25,7 @@ export function handleUserStatus({
 
   setConversations((prev) => {
     const filteredConversation = prev.filter((conversation) =>
-      conversation.members.some((user) => payload.userId == user?.id)
+      conversation.members.some((user) => payload.userId === user?.id)
     );
     const updatedConversation = filteredConversation.map((conversation) => ({
       ...conversation,
