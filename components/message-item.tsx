@@ -6,12 +6,7 @@ import { useState, useRef } from 'react';
 import { Smile, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import OnlineStatus from '@/components/online-status';
 import type { Reaction, User } from '@/lib/mock-data';
 import EmojiPicker from '@/components/emoji-picker';
@@ -30,11 +25,7 @@ interface MessageItemProps {
   onAddReaction: (emoji: string) => void;
 }
 
-export default function MessageItem({
-  message,
-  isOwnMessage,
-  onAddReaction,
-}: MessageItemProps) {
+export default function MessageItem({ message, isOwnMessage, onAddReaction }: MessageItemProps) {
   const { currentUser } = useWebSocketContext();
   const [showReactions, setShowReactions] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
@@ -58,16 +49,12 @@ export default function MessageItem({
 
   // Check if current user has reacted with a specific emoji
   const hasUserReacted = (emoji: string) => {
-    return message.reactions.some(
-      (r) => r.emoji === emoji && r.user.id === currentUser?.id
-    );
+    return message.reactions.some((r) => r.emoji === emoji && r.user.id === currentUser?.id);
   };
 
   // Get users who reacted with a specific emoji
   const getUsersForReaction = (emoji: string) => {
-    return message.reactions
-      .filter((r) => r.emoji === emoji)
-      .map((r) => r.user);
+    return message.reactions.filter((r) => r.emoji === emoji).map((r) => r.user);
   };
 
   // Format users list for tooltip
@@ -90,7 +77,7 @@ export default function MessageItem({
       id={`message-${message.id}`}
       ref={messageRef}
       className={cn(
-        'group flex gap-3 max-w-[80%]',
+        'group flex gap-3 max-w-[80%] transition-colors duration-300',
         isOwnMessage ? 'ml-auto flex-row-reverse' : ''
       )}
       onMouseEnter={() => setShowReactions(true)}
@@ -99,28 +86,19 @@ export default function MessageItem({
       {/* {message.sender.avatar} */}
       <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
         <AvatarImage src={message.sender.avatar} />
-        <AvatarFallback>
-          {message.sender.name.substring(0, 2).toUpperCase()}
-        </AvatarFallback>
+        <AvatarFallback>{message.sender.name.substring(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
 
       <div className={cn('flex flex-col', isOwnMessage ? 'items-end' : '')}>
         <div className="flex items-center gap-2 mb-1">
-          {!isOwnMessage && (
-            <span className="text-sm font-medium">{message.sender.name}</span>
-          )}
-          <span className="text-xs text-muted-foreground">
-            {formatTime(new Date(message.created_at))}
-          </span>
+          {!isOwnMessage && <span className="text-sm font-medium">{message.sender.name}</span>}
+          <span className="text-xs text-muted-foreground">{formatTime(new Date(message.created_at))}</span>
         </div>
 
         <div className="relative">
           <div
-            id={`message-${message.id}-bubble transition-colors duration-300`}
-            className={cn(
-              'rounded-lg p-3 w-fit',
-              isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'
-            )}
+            id={`message-${message.id}-bubble`}
+            className={cn('rounded-lg p-3 w-fit', isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}
           >
             {message.content}
           </div>
@@ -140,17 +118,8 @@ export default function MessageItem({
           )}
 
           {isEmojiPickerOpen && (
-            <div
-              className={cn(
-                'absolute z-10',
-                isOwnMessage ? 'right-0' : 'left-0',
-                'top-full mt-1'
-              )}
-            >
-              <EmojiPicker
-                onSelect={handleEmojiSelect}
-                onClose={() => setIsEmojiPickerOpen(false)}
-              />
+            <div className={cn('absolute z-10', isOwnMessage ? 'right-0' : 'left-0', 'top-full mt-1')}>
+              <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setIsEmojiPickerOpen(false)} />
             </div>
           )}
         </div>
@@ -161,9 +130,7 @@ export default function MessageItem({
               {Array.from(new Set(message.reactions.map((r) => r.emoji)))
                 .slice(0, 5)
                 .map((emoji) => {
-                  const count = message.reactions.filter(
-                    (r) => r.emoji === emoji
-                  ).length;
+                  const count = message.reactions.filter((r) => r.emoji === emoji).length;
                   const userReacted = hasUserReacted(emoji);
 
                   return (
@@ -176,9 +143,7 @@ export default function MessageItem({
                       <div
                         className={cn(
                           'flex items-center gap-1 text-xs rounded-full px-2 py-0.5 cursor-pointer box-border h-6',
-                          userReacted
-                            ? 'bg-primary/20'
-                            : 'bg-muted hover:bg-muted/80'
+                          userReacted ? 'bg-primary/20' : 'bg-muted hover:bg-muted/80'
                         )}
                         onClick={() => onAddReaction(emoji)}
                       >
@@ -199,8 +164,7 @@ export default function MessageItem({
               {/* Show +X more if there are more than 5 reaction types */}
               {new Set(message.reactions.map((r) => r.emoji)).size > 5 && (
                 <div className="flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-muted h-6">
-                  +{new Set(message.reactions.map((r) => r.emoji)).size - 5}{' '}
-                  more
+                  +{new Set(message.reactions.map((r) => r.emoji)).size - 5} more
                 </div>
               )}
             </div>
@@ -212,11 +176,7 @@ export default function MessageItem({
               className="h-6 w-6 rounded-full bg-muted hover:bg-muted/80 p-0 flex-shrink-0"
               onClick={() => {
                 setReactionDetailsOpen(true);
-                setSelectedReaction(
-                  Array.from(
-                    new Set(message.reactions.map((r) => r.emoji))
-                  )[0] || null
-                );
+                setSelectedReaction(Array.from(new Set(message.reactions.map((r) => r.emoji)))[0] || null);
               }}
             >
               <Users className="h-3 w-3" />
@@ -234,48 +194,36 @@ export default function MessageItem({
 
           {/* Tabs for different reaction types */}
           <div className="flex overflow-x-auto pb-2 mb-2 border-b">
-            {Array.from(new Set(message.reactions.map((r) => r.emoji))).map(
-              (emoji) => (
-                <Button
-                  key={emoji}
-                  variant={selectedReaction === emoji ? 'secondary' : 'ghost'}
-                  className="flex items-center gap-1 px-3 rounded-full mr-1"
-                  onClick={() => setSelectedReaction(emoji)}
-                >
-                  <span>{emoji}</span>
-                  <span className="text-xs bg-muted rounded-full px-1.5">
-                    {message.reactions.filter((r) => r.emoji === emoji).length}
-                  </span>
-                </Button>
-              )
-            )}
+            {Array.from(new Set(message.reactions.map((r) => r.emoji))).map((emoji) => (
+              <Button
+                key={emoji}
+                variant={selectedReaction === emoji ? 'secondary' : 'ghost'}
+                className="flex items-center gap-1 px-3 rounded-full mr-1"
+                onClick={() => setSelectedReaction(emoji)}
+              >
+                <span>{emoji}</span>
+                <span className="text-xs bg-muted rounded-full px-1.5">
+                  {message.reactions.filter((r) => r.emoji === emoji).length}
+                </span>
+              </Button>
+            ))}
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto">
             {selectedReaction &&
               getUsersForReaction(selectedReaction).map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-2 hover:bg-accent rounded-md"
-                >
+                <div key={user.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-md">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.avatar} />
-                        <AvatarFallback>
-                          {user.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
-                      <OnlineStatus
-                        isOnline={user.isOnline || false}
-                        className="absolute bottom-0 right-0"
-                      />
+                      <OnlineStatus isOnline={user.isOnline || false} className="absolute bottom-0 right-0" />
                     </div>
                     <div>
                       <p className="font-medium">{user.name}</p>
-                      {user.id === currentUser?.id && (
-                        <p className="text-xs text-muted-foreground">You</p>
-                      )}
+                      {user.id === currentUser?.id && <p className="text-xs text-muted-foreground">You</p>}
                     </div>
                   </div>
                 </div>
