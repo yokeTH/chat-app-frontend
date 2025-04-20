@@ -4,13 +4,7 @@ import { useState } from 'react';
 import { PlusCircle, X, LogOut, Settings, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type Conversation, type User } from '@/lib/mock-data';
@@ -61,13 +55,7 @@ export default function Sidebar({
 
   return (
     <>
-      <div
-        className={cn(
-          'fixed inset-0 bg-black/50 z-10 lg:hidden',
-          isOpen ? 'block' : 'hidden'
-        )}
-        onClick={onToggle}
-      />
+      <div className={cn('fixed inset-0 bg-black/50 z-10 lg:hidden', isOpen ? 'block' : 'hidden')} onClick={onToggle} />
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-20 w-80 bg-background shadow-lg transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col h-screen overflow-hidden',
@@ -76,20 +64,12 @@ export default function Sidebar({
       >
         <div className="flex items-center justify-between p-4">
           <h1 className="text-2xl font-bold">Chats</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={onToggle}
-          >
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={onToggle}>
             <X className="h-5 w-5" />
           </Button>
         </div>
         <div className="p-4">
-          <Button
-            className="w-full"
-            onClick={() => setIsNewConversationOpen(true)}
-          >
+          <Button className="w-full" onClick={() => setIsNewConversationOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Start a new conversation
           </Button>
@@ -99,9 +79,7 @@ export default function Sidebar({
             conversations.map((conversation) => {
               // For DMs, get the other user to show their online status
               const otherUser = !conversation.isGroup
-                ? conversation.members.find(
-                    (member) => member?.id !== currentUser?.id
-                  )
+                ? conversation.members.find((member) => member?.id !== currentUser?.id)
                 : null;
 
               return (
@@ -115,47 +93,27 @@ export default function Sidebar({
                 >
                   <div className="relative">
                     <Avatar>
-                      <AvatarImage
-                        src={
-                          getConversationAvatar(conversation, currentUser) ||
-                          '/placeholder.svg'
-                        }
-                      />
-                      <AvatarFallback>
-                        {getInitials(
-                          getConversationName(conversation, currentUser)
-                        )}
-                      </AvatarFallback>
+                      <AvatarImage src={getConversationAvatar(conversation, currentUser) || '/placeholder.svg'} />
+                      <AvatarFallback>{getInitials(getConversationName(conversation, currentUser))}</AvatarFallback>
                     </Avatar>
                     {!conversation.isGroup && otherUser && (
-                      <OnlineStatus
-                        isOnline={otherUser.isOnline || false}
-                        className="absolute bottom-0 right-0"
-                      />
+                      <OnlineStatus isOnline={otherUser.is_online || false} className="absolute bottom-0 right-0" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline">
-                      <h3 className="font-medium truncate">
-                        {getConversationName(conversation, currentUser)}
-                      </h3>
+                      <h3 className="font-medium truncate">{getConversationName(conversation, currentUser)}</h3>
                       {conversation.lastMessage && (
                         <span className="text-xs text-muted-foreground">
-                          {formatTime(
-                            new Date(conversation.lastMessage.created_at)
-                          )}
+                          {formatTime(new Date(conversation.lastMessage.created_at))}
                         </span>
                       )}
                     </div>
                     {conversation.lastMessage && (
                       <p className="text-sm text-muted-foreground truncate">
-                        {conversation.isGroup &&
-                          conversation.lastMessage.sender.id !==
-                            currentUser?.id && (
-                            <span className="font-medium">
-                              {conversation.lastMessage.sender.name}:{' '}
-                            </span>
-                          )}
+                        {conversation.isGroup && conversation.lastMessage.sender.id !== currentUser?.id && (
+                          <span className="font-medium">{conversation.lastMessage.sender.name}: </span>
+                        )}
                         {conversation.lastMessage.content}
                       </p>
                     )}
@@ -174,17 +132,10 @@ export default function Sidebar({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Avatar>
-                  <AvatarImage
-                    src={currentUser?.avatar || '/placeholder.svg'}
-                  />
-                  <AvatarFallback>
-                    {getInitials(currentUser?.name)}
-                  </AvatarFallback>
+                  <AvatarImage src={currentUser?.avatar || '/placeholder.svg'} />
+                  <AvatarFallback>{getInitials(currentUser?.name)}</AvatarFallback>
                 </Avatar>
-                <OnlineStatus
-                  isOnline={true}
-                  className="absolute bottom-0 right-0"
-                />
+                <OnlineStatus isOnline={true} className="absolute bottom-0 right-0" />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <h3 className="font-medium truncate">{currentUser?.name}</h3>
@@ -225,9 +176,7 @@ export default function Sidebar({
         isOpen={isNewConversationOpen}
         onClose={() => setIsNewConversationOpen(false)}
         onCreateConversation={onCreateConversation}
-        availableUsers={availableUsers.filter(
-          (user) => user.id !== currentUser?.id
-        )}
+        availableUsers={availableUsers.filter((user) => user.id !== currentUser?.id)}
       />
 
       {/* Settings Dialog */}
@@ -240,30 +189,17 @@ export default function Sidebar({
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage
-                    src={currentUser?.avatar || '/placeholder.svg'}
-                  />
-                  <AvatarFallback>
-                    {getInitials(currentUser?.name)}
-                  </AvatarFallback>
+                  <AvatarImage src={currentUser?.avatar || '/placeholder.svg'} />
+                  <AvatarFallback>{getInitials(currentUser?.name)}</AvatarFallback>
                 </Avatar>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute bottom-0 right-0 h-6 w-6 rounded-full"
-                >
+                <Button variant="secondary" size="icon" className="absolute bottom-0 right-0 h-6 w-6 rounded-full">
                   <PlusCircle className="h-4 w-4" />
                 </Button>
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="name">Display Name</Label>
-              <Input
-                id="name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Your name"
-              />
+              <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Your name" />
             </div>
           </div>
           <DialogFooter>
@@ -279,31 +215,21 @@ export default function Sidebar({
 }
 
 // Helper functions
-function getConversationName(
-  conversation: Conversation,
-  currentUser?: User
-): string {
+function getConversationName(conversation: Conversation, currentUser?: User): string {
   if (conversation.isGroup) {
     return conversation.name;
   }
   // For DMs, show the other person's name
-  const otherMember = conversation.members.find(
-    (member) => member?.id !== currentUser?.id
-  );
+  const otherMember = conversation.members.find((member) => member?.id !== currentUser?.id);
   return otherMember ? otherMember.name : conversation.name;
 }
 
-function getConversationAvatar(
-  conversation: Conversation,
-  currentUser?: User
-): string {
+function getConversationAvatar(conversation: Conversation, currentUser?: User): string {
   if (conversation.isGroup || !currentUser) {
     return ''; // Group avatar placeholder
   }
   // For DMs, show the other person's avatar
-  const otherMember = conversation.members.find(
-    (member) => member?.id !== currentUser?.id
-  );
+  const otherMember = conversation.members.find((member) => member?.id !== currentUser?.id);
   return otherMember ? otherMember.avatar : '';
 }
 

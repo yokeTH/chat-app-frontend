@@ -36,7 +36,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
       id: session?.user?.id ?? '',
       name: session?.user?.name ?? '',
       avatar: session?.user?.image ?? '',
-      isOnline: true,
+      is_online: true,
     };
     setCurrentUser(user);
   }, [session]);
