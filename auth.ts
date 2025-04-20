@@ -108,13 +108,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (profile) {
         console.log(profile);
         token.profile = profile;
-        token.access_token_expired = Number(profile.exp) || 0;
+        token.access_token_expired = Number(profile.exp) * 1000 || 0;
       }
 
       // refresh before token is expire 5 min
       if (
         token.access_token_expired &&
-        (token.access_token_expired - 5 * 60) * 1000 < Date.now()
+        token.access_token_expired - 5 * 60 < Date.now()
       ) {
         try {
           console.log('try to refresh token');
@@ -136,6 +136,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.refresh_token = token.refresh_token;
       session.access_token_expired = token.access_token_expired;
       session.user.id = token.user.id || '';
+      session.time = Date.now();
 
       return session;
     },

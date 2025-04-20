@@ -12,7 +12,6 @@ import {
 import useWebSocket, { type ReadyState } from 'react-use-websocket';
 import type { ChatMessage, WebSocketMessage } from '@/lib/websocket-types';
 import type { Conversation, Message, User } from '@/lib/mock-data';
-import { mockUsers } from '@/lib/mock-data';
 import { useSession } from 'next-auth/react';
 import { handleMessage } from '@/contexts/handleMessage';
 
@@ -39,7 +38,7 @@ interface WebSocketContextType {
   lastMessage: WebSocketMessage | null;
   conversations: Conversation[];
   setConversations: (conversations: Conversation[]) => void;
-  currentUser: User;
+  currentUser?: User;
   setCurrentUser: (user: User) => void;
   activeConversation: Conversation | null;
   setActiveConversation: (conversation: Conversation | null) => void;
@@ -65,7 +64,7 @@ interface WebSocketProviderProps {
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
-  const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
+  const [currentUser, setCurrentUser] = useState<User>();
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] =
@@ -94,8 +93,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   useEffect(() => {
     const m = lastJsonMessage as WebSocketMessage;
+    console.log('(m)', m);
     if (m) {
-      if (!activeConversation) return;
       if (m.event === 'message') {
         handleMessage({
           payload: m.payload,
@@ -116,13 +115,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           conversationId,
           content,
           attachments,
-          senderId: currentUser.id,
+          senderId: currentUser?.id,
           created_at: Date.now(),
         },
         created_at: Date.now(),
       });
     },
-    [sendJsonMessage, currentUser.id]
+    [sendJsonMessage, currentUser]
   );
 
   const sendTypingStart = useCallback(
@@ -131,12 +130,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         event: 'typing_start',
         payload: {
           conversationId,
-          userId: currentUser.id,
+          userId: currentUser?.id,
         },
         timestamp: Date.now(),
       });
     },
-    [sendJsonMessage, currentUser.id]
+    [sendJsonMessage, currentUser]
   );
 
   const sendTypingEnd = useCallback(
@@ -145,12 +144,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         event: 'typing_end',
         payload: {
           conversationId,
-          userId: currentUser.id,
+          userId: currentUser?.id,
         },
         timestamp: Date.now(),
       });
     },
-    [sendJsonMessage, currentUser.id]
+    [sendJsonMessage, currentUser]
   );
 
   const addReaction = useCallback(
@@ -160,13 +159,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         payload: {
           messageId,
           conversationId,
-          userId: currentUser.id,
+          userId: currentUser?.id,
           emoji,
         },
         timestamp: Date.now(),
       });
     },
-    [sendJsonMessage, currentUser.id]
+    [sendJsonMessage, currentUser]
   );
 
   const removeReaction = useCallback(
@@ -176,13 +175,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         payload: {
           messageId,
           conversationId,
-          userId: currentUser.id,
+          userId: currentUser?.id,
           emoji,
         },
         timestamp: Date.now(),
       });
     },
-    [sendJsonMessage, currentUser.id]
+    [sendJsonMessage, currentUser]
   );
 
   const sendReadReceipt = useCallback(
@@ -191,14 +190,14 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         event: 'read_receipt',
         payload: {
           conversationId,
-          userId: currentUser.id,
+          userId: currentUser?.id,
           lastReadMessageId: messageId,
           timestamp: Date.now(),
         },
         timestamp: Date.now(),
       });
     },
-    [sendJsonMessage, currentUser.id]
+    [sendJsonMessage, currentUser]
   );
 
   return (

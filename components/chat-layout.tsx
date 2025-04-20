@@ -9,13 +9,7 @@ import {
   useWebSocketContext,
   WebSocketProvider,
 } from '@/contexts/websocket-context';
-import {
-  type Conversation,
-  type Message,
-  type User,
-  mockConversations,
-  mockUsers,
-} from '@/lib/mock-data';
+import { type Conversation, type Message, type User } from '@/lib/mock-data';
 import { useSession } from 'next-auth/react';
 import { fetchConversation } from '@/actions/conversation/get';
 import { fetchUsers } from '@/actions/users/get';
@@ -70,7 +64,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
         setActiveConversation(conversation);
       }
     }
-  }, [initialChatId, conversations]);
+  }, [initialChatId]);
 
   // On mobile, selecting a conversation should close the sidebar
   const handleSelectConversation = (conversation: Conversation) => {
@@ -92,7 +86,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
       if (message.id === messageId) {
         // Check if user already reacted with this emoji
         const existingReaction = message.reactions.find(
-          (r) => r.emoji === emoji && r.user.id === currentUser.id
+          (r) => r.emoji === emoji && r.user.id === currentUser?.id
         );
 
         if (existingReaction) {
@@ -100,21 +94,21 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
           return {
             ...message,
             reactions: message.reactions.filter(
-              (r) => !(r.emoji === emoji && r.user.id === currentUser.id)
+              (r) => !(r.emoji === emoji && r.user.id === currentUser?.id)
             ),
           };
         } else {
           // Add new reaction
           return {
             ...message,
-            reactions: [...message.reactions, { emoji, user: currentUser }],
+            reactions: [...message.reactions, { emoji, user: currentUser! }],
           };
         }
       }
       return message;
     });
 
-    const updatedConversation = {
+    const updatedConversation: Conversation = {
       ...activeConversation,
       messages: updatedMessages,
     };
@@ -135,7 +129,7 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
       const existingDM = conversations.find(
         (conversation) =>
           !conversation.isGroup &&
-          conversation.members.some((m) => m.id === users[0].id)
+          conversation.members.some((m) => m?.id === users[0].id)
       );
 
       if (existingDM) {
@@ -152,9 +146,9 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
 
     // Create new conversation
     try {
-      console.log([...users.map((u) => u.id), currentUser.id]);
+      console.log([...users.map((u) => u.id), currentUser?.id]);
       const data = await createConversation(
-        [...users.map((u) => u.id), currentUser.id],
+        [...users.map((u) => u.id), currentUser?.id ?? ''],
         name || (users.length === 1 ? users[0].name : 'New Group')
       );
 
@@ -193,13 +187,10 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
         activeConversation={activeConversation}
         onSelectConversation={handleSelectConversation}
         onCreateConversation={handleCreateConversation}
-        currentUser={currentUser}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
       <ChatArea
-        conversation={activeConversation}
-        currentUser={currentUser}
         onAddReaction={handleAddReaction}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}

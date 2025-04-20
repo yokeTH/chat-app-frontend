@@ -16,6 +16,7 @@ import OnlineStatus from '@/components/online-status';
 import type { Reaction, User } from '@/lib/mock-data';
 import EmojiPicker from '@/components/emoji-picker';
 import { cn } from '@/lib/utils';
+import { useWebSocketContext } from '@/contexts/websocket-context';
 
 interface MessageItemProps {
   message: {
@@ -27,15 +28,14 @@ interface MessageItemProps {
   };
   isOwnMessage: boolean;
   onAddReaction: (emoji: string) => void;
-  currentUser: User;
 }
 
 export default function MessageItem({
   message,
   isOwnMessage,
   onAddReaction,
-  currentUser,
 }: MessageItemProps) {
+  const { currentUser } = useWebSocketContext();
   const [showReactions, setShowReactions] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [hoveredReaction, setHoveredReaction] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export default function MessageItem({
   // Check if current user has reacted with a specific emoji
   const hasUserReacted = (emoji: string) => {
     return message.reactions.some(
-      (r) => r.emoji === emoji && r.user.id === currentUser.id
+      (r) => r.emoji === emoji && r.user.id === currentUser?.id
     );
   };
 
@@ -90,7 +90,7 @@ export default function MessageItem({
       id={`message-${message.id}`}
       ref={messageRef}
       className={cn(
-        'group flex gap-3 max-w-[80%] transition-colors duration-300',
+        'group flex gap-3 max-w-[80%]',
         isOwnMessage ? 'ml-auto flex-row-reverse' : ''
       )}
       onMouseEnter={() => setShowReactions(true)}
@@ -116,9 +116,9 @@ export default function MessageItem({
 
         <div className="relative">
           <div
-            id={`message-${message.id}-bubble`}
+            id={`message-${message.id}-bubble transition-colors duration-300`}
             className={cn(
-              'rounded-lg p-3',
+              'rounded-lg p-3 w-fit',
               isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'
             )}
           >
@@ -273,7 +273,7 @@ export default function MessageItem({
                     </div>
                     <div>
                       <p className="font-medium">{user.name}</p>
-                      {user.id === currentUser.id && (
+                      {user.id === currentUser?.id && (
                         <p className="text-xs text-muted-foreground">You</p>
                       )}
                     </div>

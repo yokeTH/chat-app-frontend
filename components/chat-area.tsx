@@ -31,21 +31,18 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 interface ChatAreaProps {
-  conversation: Conversation | null;
-  currentUser: User;
   onAddReaction: (messageId: string, emoji: string) => void;
   onToggleSidebar: () => void;
   isSidebarOpen: boolean;
 }
 
 export default function ChatArea({
-  conversation,
-  currentUser,
   onAddReaction,
   onToggleSidebar,
   // isSidebarOpen,
 }: ChatAreaProps) {
-  const { messagesEndRef } = useWebSocketContext();
+  const { messagesEndRef, currentUser, activeConversation } =
+    useWebSocketContext();
   const [message, setMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState<User[]>([]);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
@@ -82,29 +79,29 @@ export default function ChatArea({
     }[]
   >([]);
 
-  // Get other user for DM conversations
   const getOtherUser = () => {
-    if (!conversation || conversation.isGroup) return null;
+    if (!activeConversation || activeConversation.isGroup) return null;
     return (
-      conversation.members.find((member) => member.id !== currentUser.id) ||
-      null
+      activeConversation.members.find(
+        (member) => member?.id !== currentUser?.id
+      ) || null
     );
   };
 
   // Handle WebSocket messages
   useEffect(() => {
-    if (!lastMessage || !conversation) return;
+    if (!lastMessage || !activeConversation) return;
 
     // Handle different WebSocket events
     switch (lastMessage.event) {
       case 'typing_start':
         const typingPayload = lastMessage.payload;
         if (
-          typingPayload.conversationId === conversation.id &&
-          typingPayload.userId !== currentUser.id
+          typingPayload.conversationId === activeConversation.id &&
+          typingPayload.userId !== currentUser?.id
         ) {
-          const typingUser = conversation.members.find(
-            (m) => m.id === typingPayload.userId
+          const typingUser = activeConversation.members.find(
+            (m) => m?.id === typingPayload.userId
           );
           if (typingUser && !typingUsers.some((u) => u.id === typingUser.id)) {
             setTypingUsers((prev) => [...prev, typingUser]);
@@ -113,7 +110,7 @@ export default function ChatArea({
         break;
       case 'typing_end':
         const endTypingPayload = lastMessage.payload;
-        if (endTypingPayload.conversationId === conversation.id) {
+        if (endTypingPayload.conversationId === activeConversation.id) {
           setTypingUsers((prev) =>
             prev.filter((u) => u.id !== endTypingPayload.userId)
           );
@@ -121,7 +118,7 @@ export default function ChatArea({
         break;
       // Handle other events as needed
     }
-  }, [lastMessage, conversation, currentUser.id, typingUsers]);
+  }, [lastMessage, activeConversation, currentUser?.id, typingUsers]);
 
   // Add drag and drop handlers
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -226,9 +223,9 @@ export default function ChatArea({
     setSearchTerm(value);
 
     // Only search if there's a term
-    if (value.trim() && conversation) {
+    if (value.trim() && activeConversation) {
       const term = value.toLowerCase();
-      const matches = conversation.messages.filter(
+      const matches = activeConversation.messages.filter(
         (message) =>
           typeof message.content === 'string' &&
           message.content.toLowerCase().includes(term)
@@ -249,7 +246,7 @@ export default function ChatArea({
         `message-${messageId}-bubble`
       );
       if (messageElement) {
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        messageElement.scrollIntoView({ behavior: 'smooth' });
 
         // Highlight the message briefly
         messageElement.classList.add('bg-yellow-100');
@@ -257,28 +254,28 @@ export default function ChatArea({
           messageElement.classList.remove('bg-yellow-100');
         }, 1000);
       }
-    }, 100);
+    }, 0);
   };
 
   useEffect(() => {
-    if (activeTab === 'chat' && conversation?.messages) {
+    if (activeTab === 'chat' && activeConversation?.messages) {
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 0);
     }
-  }, [conversation?.messages, activeTab]);
+  }, [activeConversation?.messages]);
 
   // Reset search when changing conversations
   useEffect(() => {
     setSearchTerm('');
     setSearchResults([]);
     setActiveTab('chat');
-  }, [conversation]);
+  }, [activeConversation]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && conversation) {
-      wsSendMessage(conversation.id, message);
+    if (message.trim() && activeConversation) {
+      wsSendMessage(activeConversation.id, message);
       setMessage('');
     }
   };
@@ -325,10 +322,10 @@ export default function ChatArea({
     const value = e.target.value;
     setMessage(value);
 
-    if (conversation) {
+    if (activeConversation) {
       // Send typing start event
       if (value && value.length === 1) {
-        sendTypingStart(conversation.id);
+        sendTypingStart(activeConversation.id);
       }
 
       // Clear existing timeout
@@ -338,7 +335,7 @@ export default function ChatArea({
 
       // Set new timeout to send typing end event after 2 seconds of inactivity
       const timeout = setTimeout(() => {
-        sendTypingEnd(conversation.id);
+        sendTypingEnd(activeConversation.id);
       }, 2000);
 
       setTypingTimeout(timeout);
@@ -347,10 +344,10 @@ export default function ChatArea({
 
   // Handle reaction via WebSocket
   const handleAddReaction = (messageId: string, emoji: string) => {
-    if (!conversation) return;
+    if (!activeConversation) return;
 
     // Send via WebSocket
-    wsAddReaction(messageId, conversation.id, emoji);
+    wsAddReaction(messageId, activeConversation.id, emoji);
 
     // Also update UI via the provided handler
     onAddReaction(messageId, emoji);
@@ -465,7 +462,7 @@ export default function ChatArea({
     }
   };
 
-  if (!conversation) {
+  if (!activeConversation) {
     return (
       <div className="flex-1 flex items-center justify-center bg-muted/20">
         <div className="text-center">
@@ -502,15 +499,17 @@ export default function ChatArea({
                 <Avatar className="h-10 w-10 mr-3">
                   <AvatarImage src="/placeholder.svg" />
                   <AvatarFallback>
-                    {conversation.name.substring(0, 2).toUpperCase()}
+                    {activeConversation.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </div>
               <div className="min-w-0">
-                <h2 className="font-semibold truncate">{conversation.name}</h2>
+                <h2 className="font-semibold truncate">
+                  {activeConversation.name}
+                </h2>
                 <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                  {conversation.isGroup ? (
-                    `${conversation.members.length} members`
+                  {activeConversation.isGroup ? (
+                    `${activeConversation.members.length} members`
                   ) : (
                     <>
                       {otherUser?.isOnline ? (
@@ -538,7 +537,7 @@ export default function ChatArea({
               >
                 <Search className="h-5 w-5" />
               </Button>
-              {conversation.isGroup && (
+              {activeConversation.isGroup && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -601,24 +600,16 @@ export default function ChatArea({
             </div>
           )}
 
-          {conversation.messages.map((message) => (
-            <>
-              {/* {JSON.stringify(message)} */}
-              {message && (
-                <MessageItem
-                  key={message.id}
-                  message={{
-                    ...message,
-                    content: renderMessageContent(message?.content),
-                  }}
-                  isOwnMessage={message.sender.id === currentUser.id}
-                  onAddReaction={(emoji) =>
-                    handleAddReaction(message.id, emoji)
-                  }
-                  currentUser={currentUser}
-                />
-              )}
-            </>
+          {activeConversation.messages.map((message) => (
+            <MessageItem
+              key={message.id}
+              message={{
+                ...message,
+                content: renderMessageContent(message?.content),
+              }}
+              isOwnMessage={message.sender.id === currentUser?.id}
+              onAddReaction={(emoji) => handleAddReaction(message.id, emoji)}
+            />
           ))}
 
           {uploadingFiles.map((fileInfo) => (
@@ -662,46 +653,48 @@ export default function ChatArea({
             <Avatar className="h-16 w-16">
               <AvatarImage src="/placeholder.svg" />
               <AvatarFallback>
-                {conversation.name.substring(0, 2).toUpperCase()}
+                {activeConversation.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-semibold">{conversation.name}</h2>
+              <h2 className="text-xl font-semibold">
+                {activeConversation.name}
+              </h2>
               <p className="text-sm text-muted-foreground">
-                {conversation.members.length} members
+                {activeConversation.members.length} members
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
-            {conversation.members.map((member) => (
+            {activeConversation.members.map((member) => (
               <div
-                key={member.id}
+                key={member?.id}
                 className="flex items-center justify-between p-2 rounded-md hover:bg-accent"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.avatar || '/placeholder.svg'} />
+                      <AvatarImage src={member?.avatar || '/placeholder.svg'} />
                       <AvatarFallback>
-                        {member.name.substring(0, 2).toUpperCase()}
+                        {member?.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <OnlineStatus
-                      isOnline={member.isOnline || false}
+                      isOnline={member?.isOnline || false}
                       className="absolute bottom-0 right-0"
                     />
                   </div>
                   <div>
-                    <p className="font-medium">{member.name}</p>
-                    {member.id === currentUser.id && (
+                    <p className="font-medium">{member?.name}</p>
+                    {member?.id === currentUser?.id && (
                       <p className="text-xs text-muted-foreground">You</p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {member.isOnline && (
+                  {member?.isOnline && (
                     <Badge
                       variant="outline"
                       className="bg-green-50 text-green-700 border-green-200"
@@ -709,7 +702,7 @@ export default function ChatArea({
                       Online
                     </Badge>
                   )}
-                  {member.id === currentUser.id && (
+                  {member?.id === currentUser?.id && (
                     <Badge variant="outline">You</Badge>
                   )}
                 </div>
@@ -771,7 +764,7 @@ export default function ChatArea({
                           hour: 'numeric',
                           minute: 'numeric',
                           hour12: true,
-                        }).format(message.created_at)}
+                        }).format(new Date(message.created_at))}
                       </span>
                     </div>
                     <p className="text-sm">
