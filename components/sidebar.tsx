@@ -13,19 +13,20 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { type Conversation, type User, mockUsers } from '@/lib/mock-data';
+import { type Conversation, type User } from '@/lib/mock-data';
 import NewConversationDialog from '@/components/new-conversation-dialog';
 import OnlineStatus from '@/components/online-status';
 import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
+import { useWebSocketContext } from '@/contexts/websocket-context';
 
 interface SidebarProps {
   conversations: Conversation[];
   activeConversation: Conversation | null;
   onSelectConversation: (conversation: Conversation) => void;
   onCreateConversation: (users: User[], name?: string) => void;
-  currentUser: User;
   isOpen: boolean;
+  availableUsers: User[];
   onToggle: () => void;
 }
 
@@ -34,14 +35,15 @@ export default function Sidebar({
   activeConversation,
   onSelectConversation,
   onCreateConversation,
-  currentUser,
   isOpen,
+  availableUsers,
   onToggle,
 }: SidebarProps) {
+  const { currentUser } = useWebSocketContext();
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [newName, setNewName] = useState(currentUser.name);
+  const [newName, setNewName] = useState(currentUser?.name);
 
   const handleSignOut = () => {
     signOut();
@@ -93,71 +95,74 @@ export default function Sidebar({
           </Button>
         </div>
         <div className="overflow-y-auto flex-1">
-          {conversations.map((conversation) => {
-            // For DMs, get the other user to show their online status
-            const otherUser = !conversation.isGroup
-              ? conversation.members.find(
-                  (member) => member.id !== currentUser.id
-                )
-              : null;
+          {conversations &&
+            conversations.map((conversation) => {
+              // For DMs, get the other user to show their online status
+              const otherUser = !conversation.isGroup
+                ? conversation.members.find(
+                    (member) => member?.id !== currentUser?.id
+                  )
+                : null;
 
-            return (
-              <div
-                key={conversation.id}
-                className={cn(
-                  'flex items-start gap-3 p-3 cursor-pointer hover:bg-accent/50 transition-colors',
-                  activeConversation?.id === conversation.id && 'bg-accent'
-                )}
-                onClick={() => onSelectConversation(conversation)}
-              >
-                <div className="relative">
-                  <Avatar>
-                    <AvatarImage
-                      src={
-                        getConversationAvatar(conversation, currentUser) ||
-                        '/placeholder.svg'
-                      }
-                    />
-                    <AvatarFallback>
-                      {getInitials(
-                        getConversationName(conversation, currentUser)
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!conversation.isGroup && otherUser && (
-                    <OnlineStatus
-                      isOnline={otherUser.isOnline || false}
-                      className="absolute bottom-0 right-0"
-                    />
+              return (
+                <div
+                  key={conversation.id}
+                  className={cn(
+                    'flex items-start gap-3 p-3 cursor-pointer hover:bg-accent/50 transition-colors',
+                    activeConversation?.id === conversation.id && 'bg-accent'
                   )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="font-medium truncate">
-                      {getConversationName(conversation, currentUser)}
-                    </h3>
-                    {conversation.lastMessage && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(conversation.lastMessage.timestamp)}
-                      </span>
+                  onClick={() => onSelectConversation(conversation)}
+                >
+                  <div className="relative">
+                    <Avatar>
+                      <AvatarImage
+                        src={
+                          getConversationAvatar(conversation, currentUser) ||
+                          '/placeholder.svg'
+                        }
+                      />
+                      <AvatarFallback>
+                        {getInitials(
+                          getConversationName(conversation, currentUser)
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
+                    {!conversation.isGroup && otherUser && (
+                      <OnlineStatus
+                        isOnline={otherUser.isOnline || false}
+                        className="absolute bottom-0 right-0"
+                      />
                     )}
                   </div>
-                  {conversation.lastMessage && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      {conversation.isGroup &&
-                        conversation.lastMessage.sender.id !==
-                          currentUser.id && (
-                          <span className="font-medium">
-                            {conversation.lastMessage.sender.name}:{' '}
-                          </span>
-                        )}
-                      {conversation.lastMessage.content}
-                    </p>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline">
+                      <h3 className="font-medium truncate">
+                        {getConversationName(conversation, currentUser)}
+                      </h3>
+                      {conversation.lastMessage && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(
+                            new Date(conversation.lastMessage.created_at)
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    {conversation.lastMessage && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {conversation.isGroup &&
+                          conversation.lastMessage.sender.id !==
+                            currentUser?.id && (
+                            <span className="font-medium">
+                              {conversation.lastMessage.sender.name}:{' '}
+                            </span>
+                          )}
+                        {conversation.lastMessage.content}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
 
         {/* User profile section at bottom of sidebar */}
@@ -169,9 +174,11 @@ export default function Sidebar({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Avatar>
-                  <AvatarImage src={currentUser.avatar || '/placeholder.svg'} />
+                  <AvatarImage
+                    src={currentUser?.avatar || '/placeholder.svg'}
+                  />
                   <AvatarFallback>
-                    {getInitials(currentUser.name)}
+                    {getInitials(currentUser?.name)}
                   </AvatarFallback>
                 </Avatar>
                 <OnlineStatus
@@ -180,7 +187,7 @@ export default function Sidebar({
                 />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <h3 className="font-medium truncate">{currentUser.name}</h3>
+                <h3 className="font-medium truncate">{currentUser?.name}</h3>
                 <p className="text-xs text-muted-foreground">Online</p>
               </div>
             </div>
@@ -218,7 +225,9 @@ export default function Sidebar({
         isOpen={isNewConversationOpen}
         onClose={() => setIsNewConversationOpen(false)}
         onCreateConversation={onCreateConversation}
-        availableUsers={mockUsers.filter((user) => user.id !== currentUser.id)}
+        availableUsers={availableUsers.filter(
+          (user) => user.id !== currentUser?.id
+        )}
       />
 
       {/* Settings Dialog */}
@@ -231,9 +240,11 @@ export default function Sidebar({
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={currentUser.avatar || '/placeholder.svg'} />
+                  <AvatarImage
+                    src={currentUser?.avatar || '/placeholder.svg'}
+                  />
                   <AvatarFallback>
-                    {getInitials(currentUser.name)}
+                    {getInitials(currentUser?.name)}
                   </AvatarFallback>
                 </Avatar>
                 <Button
@@ -270,33 +281,36 @@ export default function Sidebar({
 // Helper functions
 function getConversationName(
   conversation: Conversation,
-  currentUser: User
+  currentUser?: User
 ): string {
   if (conversation.isGroup) {
     return conversation.name;
   }
   // For DMs, show the other person's name
   const otherMember = conversation.members.find(
-    (member) => member.id !== currentUser.id
+    (member) => member?.id !== currentUser?.id
   );
   return otherMember ? otherMember.name : conversation.name;
 }
 
 function getConversationAvatar(
   conversation: Conversation,
-  currentUser: User
+  currentUser?: User
 ): string {
-  if (conversation.isGroup) {
+  if (conversation.isGroup || !currentUser) {
     return ''; // Group avatar placeholder
   }
   // For DMs, show the other person's avatar
   const otherMember = conversation.members.find(
-    (member) => member.id !== currentUser.id
+    (member) => member?.id !== currentUser?.id
   );
   return otherMember ? otherMember.avatar : '';
 }
 
-function getInitials(name: string): string {
+function getInitials(name?: string): string {
+  if (!name) {
+    return 'UN';
+  }
   return name
     .split(' ')
     .map((part) => part[0])
@@ -306,11 +320,9 @@ function getInitials(name: string): string {
 }
 
 function formatTime(date: Date): string {
-  // return new Intl.DateTimeFormat("en-US", {
-  //   hour: "numeric",
-  //   minute: "numeric",
-  //   hour12: true,
-  // }).format(date)
-
-  return date.toLocaleString();
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }).format(date);
 }

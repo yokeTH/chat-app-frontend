@@ -16,26 +16,26 @@ import OnlineStatus from '@/components/online-status';
 import type { Reaction, User } from '@/lib/mock-data';
 import EmojiPicker from '@/components/emoji-picker';
 import { cn } from '@/lib/utils';
+import { useWebSocketContext } from '@/contexts/websocket-context';
 
 interface MessageItemProps {
   message: {
     id: string;
     content: string | React.JSX.Element;
     sender: User;
-    timestamp: Date;
+    created_at: Date;
     reactions: Reaction[];
   };
   isOwnMessage: boolean;
   onAddReaction: (emoji: string) => void;
-  currentUser: User;
 }
 
 export default function MessageItem({
   message,
   isOwnMessage,
   onAddReaction,
-  currentUser,
 }: MessageItemProps) {
+  const { currentUser } = useWebSocketContext();
   const [showReactions, setShowReactions] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [hoveredReaction, setHoveredReaction] = useState<string | null>(null);
@@ -49,18 +49,17 @@ export default function MessageItem({
   };
 
   const formatTime = (date: Date) => {
-    // return new Intl.DateTimeFormat("en-US", {
-    //   hour: "numeric",
-    //   minute: "numeric",
-    //   hour12: true,
-    // }).format(date)
-    return date.toLocaleString();
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    }).format(date);
   };
 
   // Check if current user has reacted with a specific emoji
   const hasUserReacted = (emoji: string) => {
     return message.reactions.some(
-      (r) => r.emoji === emoji && r.user.id === currentUser.id
+      (r) => r.emoji === emoji && r.user.id === currentUser?.id
     );
   };
 
@@ -91,12 +90,13 @@ export default function MessageItem({
       id={`message-${message.id}`}
       ref={messageRef}
       className={cn(
-        'group flex gap-3 max-w-[80%] transition-colors duration-300',
+        'group flex gap-3 max-w-[80%]',
         isOwnMessage ? 'ml-auto flex-row-reverse' : ''
       )}
       onMouseEnter={() => setShowReactions(true)}
       onMouseLeave={() => setShowReactions(false)}
     >
+      {/* {message.sender.avatar} */}
       <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
         <AvatarImage src={message.sender.avatar} />
         <AvatarFallback>
@@ -110,15 +110,15 @@ export default function MessageItem({
             <span className="text-sm font-medium">{message.sender.name}</span>
           )}
           <span className="text-xs text-muted-foreground">
-            {formatTime(message.timestamp)}
+            {formatTime(new Date(message.created_at))}
           </span>
         </div>
 
         <div className="relative">
           <div
-            id={`message-${message.id}-bubble`}
+            id={`message-${message.id}-bubble transition-colors duration-300`}
             className={cn(
-              'rounded-lg p-3',
+              'rounded-lg p-3 w-fit',
               isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'
             )}
           >
@@ -273,7 +273,7 @@ export default function MessageItem({
                     </div>
                     <div>
                       <p className="font-medium">{user.name}</p>
-                      {user.id === currentUser.id && (
+                      {user.id === currentUser?.id && (
                         <p className="text-xs text-muted-foreground">You</p>
                       )}
                     </div>
