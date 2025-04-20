@@ -136,7 +136,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.refresh_token = token.refresh_token;
       session.access_token_expired = token.access_token_expired;
       session.user.id = token.user.id || '';
-      session.time = Date.now();
 
       return session;
     },

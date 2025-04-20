@@ -71,7 +71,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     useState<Conversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // In a real app, you would get this from an environment variable
-  const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+  const socketUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/ws`;
   const { data: session, status, update } = useSession();
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
