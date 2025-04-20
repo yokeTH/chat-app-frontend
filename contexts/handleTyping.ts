@@ -1,4 +1,3 @@
-import { useWebSocketContext } from '@/contexts/websocket-context';
 import { User, Conversation } from '@/lib/mock-data';
 import { TypingEvent } from '@/lib/websocket-types';
 
