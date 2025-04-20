@@ -8,6 +8,7 @@ import type { Conversation, Message, User } from '@/lib/mock-data';
 import { useSession } from 'next-auth/react';
 import { handleMessage } from '@/contexts/handleMessage';
 import { handleTyping } from '@/contexts/handleTyping';
+import { handleUserStatus } from '@/contexts/handleUserStatus';
 
 interface WebSocketContextType {
   sendMessage: (conversationId: string, content: string, attachments?: any[]) => void;
@@ -116,6 +117,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
           });
           break;
         case 'user_status':
+          handleUserStatus({
+            payload: m.payload,
+            setAvailableUsers,
+            setConversations,
+          });
           break;
         default:
           console.log(`unhandle event ${m.event}`);

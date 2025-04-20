@@ -47,7 +47,10 @@ export default function ChatLayout({ initialChatId }: ChatLayoutProps) {
       console.log('conversation:', data);
       setConversations(data ?? []);
     });
-    fetchUsers().then((data) => setAvailableUsers(data ?? []));
+    fetchUsers().then((data) => {
+      console.log('fetchUsers:', data);
+      setAvailableUsers(data ?? []);
+    });
     fetchUsersMe().then((data) => {
       console.log('My user info:', data);
       setCurrentUser(data);
