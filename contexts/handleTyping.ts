@@ -24,7 +24,7 @@ export function handleTyping({
     setTypingUsers((prev) => prev.filter((user) => user.id !== payload.userId));
   }
 
-  if (type === 'start' && activeConversation.id == payload.conversationId) {
+  if (type === 'start' && activeConversation.id === payload.conversationId) {
     setTypingUsers((prev) => [...prev, ...availableUsers.filter((user) => user.id == payload.userId)]);
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
