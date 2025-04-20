@@ -8,8 +8,7 @@ export type WebSocketEvent =
   | 'typing_end'
   | 'reaction_add'
   | 'reaction_remove'
-  | 'user_online'
-  | 'user_offline'
+  | 'user_status'
   | 'read_receipt';
 
 export interface WebSocketMessage {

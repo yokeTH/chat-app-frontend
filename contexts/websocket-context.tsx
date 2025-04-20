@@ -115,9 +115,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             messagesEndRef,
           });
           break;
-        case 'user_offline':
-          break;
-        case 'user_online':
+        case 'user_status':
           break;
         default:
           console.log(`unhandle event ${m.event}`);
