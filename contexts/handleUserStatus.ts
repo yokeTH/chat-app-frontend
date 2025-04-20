@@ -15,7 +15,7 @@ export function handleUserStatus({
   setActiveConversation,
 }: HandleUserStatus) {
   setAvailableUsers((prev) => {
-    const filteredUsers = prev.filter((user) => user.id == payload.userId);
+    const filteredUsers = prev.filter((user) => user.id === payload.userId);
     const updatedUsers = filteredUsers.map((user) => ({
       ...user,
       is_online: payload.status === 'online',
