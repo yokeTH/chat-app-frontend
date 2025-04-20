@@ -190,7 +190,7 @@ export default function ChatArea({
           messageElement.classList.remove('bg-yellow-100');
         }, 1000);
       }
-    }, 0);
+    }, 500);
   };
 
   useEffect(() => {
