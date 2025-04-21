@@ -57,6 +57,7 @@ export interface ReadReceiptEvent {
 
 export interface UserStatusEvent {
   userId: string;
-  status: 'online' | 'offline';
+  status?: 'online' | 'offline';
+  name?: string;
   lastSeen?: number;
 }

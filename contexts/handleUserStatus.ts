@@ -1,5 +1,6 @@
 import { Conversation, User } from '@/lib/mock-data';
 import { UserStatusEvent } from '@/lib/websocket-types';
+import { Play } from 'lucide-react';
 
 interface HandleUserStatus {
   payload: UserStatusEvent;
@@ -19,6 +20,7 @@ export function handleUserStatus({
     const updatedUsers = filteredUsers.map((user) => ({
       ...user,
       is_online: payload.status === 'online',
+      name: payload.name ? payload.name : user.name,
     }));
     return [...prev.filter((user) => user.id !== payload.userId), ...updatedUsers];
   });
@@ -30,7 +32,9 @@ export function handleUserStatus({
     const updatedConversation = filteredConversation.map((conversation) => ({
       ...conversation,
       members: conversation.members.map((member) => {
-        return member?.id == payload.userId ? { ...member, is_online: payload.status === 'online' } : member;
+        return member?.id == payload.userId
+          ? { ...member, is_online: payload.status === 'online', name: payload.name ? payload.name : member.name }
+          : member;
       }),
     }));
 

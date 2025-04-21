@@ -13,6 +13,7 @@ import OnlineStatus from '@/components/online-status';
 import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
 import { useWebSocketContext } from '@/contexts/websocket-context';
+import { updateUser } from '@/actions/users/update';
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -33,12 +34,11 @@ export default function Sidebar({
   availableUsers,
   onToggle,
 }: SidebarProps) {
-  const { currentUser } = useWebSocketContext();
+  const { currentUser, setCurrentUser } = useWebSocketContext();
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [newName, setNewName] = useState(currentUser?.name);
-
+  const [newName, setNewName] = useState<string>(currentUser?.name || '');
   const handleSignOut = () => {
     signOut();
   };
@@ -46,6 +46,11 @@ export default function Sidebar({
   const handleSaveSettings = () => {
     // In a real app, this would update the user's name in the database
     // For now, we'll just close the dialog
+    if (newName && currentUser) {
+      updateUser(newName).then(() => {
+        setCurrentUser({ ...currentUser, name: newName });
+      });
+    }
     setIsSettingsOpen(false);
   };
 

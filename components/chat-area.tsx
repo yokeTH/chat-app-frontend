@@ -426,7 +426,9 @@ export default function ChatArea({
                 </Avatar>
               </div>
               <div className="min-w-0">
-                <h2 className="font-semibold truncate">{activeConversation.name}</h2>
+                <h2 className="font-semibold truncate">
+                  {activeConversation.isGroup ? activeConversation.name : otherUser?.name}
+                </h2>
                 <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
                   {activeConversation.isGroup ? (
                     `${activeConversation.members.length} members`

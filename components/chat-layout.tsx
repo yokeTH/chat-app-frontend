@@ -29,16 +29,6 @@ export default function ChatLayout() {
   const { data: session, status } = useSession();
   const path = usePathname();
 
-  useEffect(() => {
-    const user: User = {
-      id: session?.user?.id ?? '',
-      name: session?.user?.name ?? '',
-      avatar: session?.user?.image ?? '',
-      is_online: true,
-    };
-    setCurrentUser(user);
-  }, [session]);
-
   // Fetch conversations from API
   useEffect(() => {
     fetchConversation().then((data) => {
