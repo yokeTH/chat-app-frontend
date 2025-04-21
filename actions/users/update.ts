@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 
 export const updateUser = async (name: string) => {
   const session = await auth();
-  const resp = await fetch(`${process.env.BACKEND_URL}/${session?.user.id}`, {
+  const resp = await fetch(`${process.env.BACKEND_URL}/users/${session?.user.id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
