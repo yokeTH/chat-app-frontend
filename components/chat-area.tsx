@@ -166,7 +166,10 @@ export default function ChatArea({
     if (value.trim() && activeConversation) {
       const term = value.toLowerCase();
       const matches = activeConversation.messages.filter(
-        (message) => typeof message.content === 'string' && message.content.toLowerCase().includes(term)
+        (message) =>
+          typeof message.content === 'string' &&
+          message.content.toLowerCase().includes(term) &&
+          message.type != 'SYSTEM'
       );
       setSearchResults(matches);
     } else {

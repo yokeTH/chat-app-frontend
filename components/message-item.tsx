@@ -235,6 +235,11 @@ export default function MessageItem({ message, isOwnMessage, onAddReaction }: Me
       </div>
     );
   } else {
-    return <div>SYSTEM: {message.content}</div>;
+    return (
+      <div className="flex gap-1 items-center justify-center">
+        <div className="bg-muted px-1 rounded text-muted-foreground">{message.content}</div>
+        <div className="bg-muted px-1 rounded text-muted-foreground">{formatTime(new Date(message.created_at))}</div>
+      </div>
+    );
   }
 }
