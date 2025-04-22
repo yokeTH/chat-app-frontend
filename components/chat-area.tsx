@@ -169,7 +169,7 @@ export default function ChatArea({
         (message) =>
           typeof message.content === 'string' &&
           message.content.toLowerCase().includes(term) &&
-          message.type != 'SYSTEM'
+          message.type !== 'SYSTEM'
       );
       setSearchResults(matches);
     } else {
