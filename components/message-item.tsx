@@ -72,7 +72,7 @@ export default function MessageItem({ message, isOwnMessage, onAddReaction }: Me
     setSelectedReaction(emoji);
     setReactionDetailsOpen(true);
   };
-  if (message.type == 'TEXT') {
+  if (message.type === 'TEXT') {
     return (
       <div
         id={`message-${message.id}`}
