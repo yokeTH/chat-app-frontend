@@ -510,7 +510,7 @@ export default function ChatArea({
                 ...message,
                 content: renderMessageContent(message?.content),
               }}
-              isOwnMessage={message.sender.id === currentUser?.id}
+              isOwnMessage={message.sender?.id === currentUser?.id}
               onAddReaction={(emoji) => handleAddReaction(message.id, emoji)}
             />
           ))}
@@ -623,12 +623,12 @@ export default function ChatArea({
                   onClick={() => jumpToMessage(message.id)}
                 >
                   <Avatar className="h-8 w-8 mt-1">
-                    <AvatarImage src={message.sender.avatar || '/placeholder.svg'} />
-                    <AvatarFallback>{message.sender.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={message.sender?.avatar || '/placeholder.svg'} />
+                    <AvatarFallback>{message.sender?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className="font-medium text-sm">{message.sender.name}</span>
+                      <span className="font-medium text-sm">{message.sender?.name}</span>
                       <span className="text-xs text-muted-foreground">
                         {new Intl.DateTimeFormat('en-US', {
                           month: 'short',

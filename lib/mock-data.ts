@@ -13,10 +13,11 @@ export interface Reaction {
 export interface Message {
   id: string;
   content: string;
-  sender: User;
+  sender?: User;
   created_at: Date;
   conversation_id: string;
   reactions: Reaction[];
+  type: string;
 }
 
 export interface Conversation {

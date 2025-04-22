@@ -25,6 +25,7 @@ export interface ChatMessage {
   senderId: string;
   timestamp: number;
   attachments?: Attachment[];
+  type: string;
 }
 
 export interface Attachment {

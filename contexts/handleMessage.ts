@@ -17,9 +17,7 @@ export function handleMessage({
 }: HandleMessage) {
   const messageConversationId = payload.conversation_id;
 
-  let targetConversation = conversations.find(
-    (conversation) => conversation.id === messageConversationId
-  );
+  let targetConversation = conversations.find((conversation) => conversation.id === messageConversationId);
 
   if (!targetConversation && activeConversation) {
     targetConversation = activeConversation;
@@ -42,9 +40,7 @@ export function handleMessage({
 
   setConversations(
     conversations.map((conversation) =>
-      conversation.id === messageConversationId
-        ? updatedConversation
-        : conversation
+      conversation.id === messageConversationId ? updatedConversation : conversation
     )
   );
 }

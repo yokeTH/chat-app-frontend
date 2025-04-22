@@ -116,8 +116,8 @@ export default function Sidebar({
                     </div>
                     {conversation.lastMessage && (
                       <p className="text-sm text-muted-foreground truncate">
-                        {conversation.isGroup && conversation.lastMessage.sender.id !== currentUser?.id && (
-                          <span className="font-medium">{conversation.lastMessage.sender.name}: </span>
+                        {conversation.isGroup && conversation.lastMessage.sender?.id !== currentUser?.id && (
+                          <span className="font-medium">{conversation.lastMessage.sender?.name}: </span>
                         )}
                         {conversation.lastMessage.content}
                       </p>

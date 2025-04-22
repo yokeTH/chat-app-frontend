@@ -8,7 +8,7 @@ import ChatArea from '@/components/chat-area';
 import { useWebSocketContext, WebSocketProvider } from '@/contexts/websocket-context';
 import { type Conversation, type Message, type User } from '@/lib/mock-data';
 import { useSession } from 'next-auth/react';
-import { fetchConversation } from '@/actions/conversation/get';
+import { fetchConversation } from '@/actions/conversation/get-all';
 import { fetchUsers } from '@/actions/users/get';
 import { createConversation } from '@/actions/conversation/create';
 import { fetchUsersMe } from '@/actions/users/me';
