@@ -18,6 +18,7 @@ import TypingIndicator from '@/components/typing-indicator';
 import OnlineStatus from '@/components/online-status';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { upload } from '@/actions/conversation/upload';
 
 interface ChatAreaProps {
   onAddReaction: (messageId: string, emoji: string) => void;
@@ -89,64 +90,10 @@ export default function ChatArea({
     }
   };
 
-  const isFileImage = (file: File) => {
-    return file.type.startsWith('image/');
-  };
-
   const handleFiles = (files: File[]) => {
-    const newUploadingFiles = files.map((file) => {
-      const isImage = isFileImage(file);
-      let previewUrl: string | undefined = undefined;
-
-      if (isImage) {
-        previewUrl = URL.createObjectURL(file);
-      }
-
-      return {
-        id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        file,
-        progress: 0,
-        complete: false,
-        isImage,
-        previewUrl,
-      };
-    });
-
-    setUploadingFiles((prev) => [...prev, ...newUploadingFiles]);
-
-    // Simulate upload progress for each file
-    newUploadingFiles.forEach((fileInfo) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 10;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-
-          setUploadingFiles((prev) =>
-            prev.map((item) => (item.id === fileInfo.id ? { ...item, progress: 100, complete: true } : item))
-          );
-
-          // Send a message with the file info
-          setTimeout(() => {
-            const fileMessage = fileInfo.isImage
-              ? `[Image: ${fileInfo.file.name}]${fileInfo.previewUrl ? `|${fileInfo.previewUrl}` : ''}`
-              : `[File: ${fileInfo.file.name}]`;
-
-            // Remove the upload indicator after a delay
-            setTimeout(() => {
-              setUploadingFiles((prev) => prev.filter((item) => item.id !== fileInfo.id));
-
-              // Clean up object URLs to prevent memory leaks
-              if (fileInfo.previewUrl) {
-                URL.revokeObjectURL(fileInfo.previewUrl);
-              }
-            }, 1000);
-          }, 500);
-        } else {
-          setUploadingFiles((prev) => prev.map((item) => (item.id === fileInfo.id ? { ...item, progress } : item)));
-        }
-      }, 200);
+    files.map((file) => {
+      if (!activeConversation) return;
+      upload(activeConversation.id, file);
     });
   };
 
@@ -509,7 +456,6 @@ export default function ChatArea({
           )}
 
           {activeConversation.messages.map((message) => {
-            console.log(message);
             return (
               <MessageItem
                 key={message.id}

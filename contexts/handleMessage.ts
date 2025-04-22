@@ -33,7 +33,7 @@ export async function handleMessage({
 
   const updatedConversation: Conversation = {
     ...targetConversation,
-    messages: [...targetConversation.messages, payload],
+    messages: [...targetConversation.messages.filter((e) => e.id != payload.id), payload],
     lastMessage: payload,
   };
 
