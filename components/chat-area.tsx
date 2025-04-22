@@ -245,8 +245,7 @@ export default function ChatArea({
     if (content.startsWith('[Image:')) {
       const parts = content.split('|');
       const imageName = parts[0].substring(7, parts[0].length);
-      const imageUrl = parts[1];
-
+      const imageUrl = parts[1].substring(0, parts[1].length - 1);
       return (
         <div className="space-y-2">
           <div className="relative group">
