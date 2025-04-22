@@ -12,12 +12,7 @@ interface ImageLightboxProps {
   onDownload: (src: string, fileName: string) => void;
 }
 
-export default function ImageLightbox({
-  src,
-  alt,
-  onClose,
-  onDownload,
-}: ImageLightboxProps) {
+export default function ImageLightbox({ src, alt, onClose, onDownload }: ImageLightboxProps) {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   // Close on escape key
@@ -41,10 +36,7 @@ export default function ImageLightbox({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onClick={onClose}>
       {/* Controls positioned on top of the image with higher z-index */}
       <div className="absolute top-4 right-4 flex gap-2 z-20">
         <Button
@@ -100,12 +92,12 @@ export default function ImageLightbox({
           alt={alt}
           className="object-contain transition-transform duration-200"
           style={{ transform: `scale(${zoomLevel})` }}
+          width={640}
+          height={640}
         />
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm z-20">
-        {alt}
-      </div>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm z-20">{alt}</div>
     </div>
   );
 }

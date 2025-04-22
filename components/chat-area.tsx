@@ -297,7 +297,7 @@ export default function ChatArea({
   const renderMessageContent = (content: string) => {
     if (content.startsWith('[Image:')) {
       const parts = content.split('|');
-      const imageName = parts[0].substring(8, parts[0].length - 1);
+      const imageName = parts[0].substring(7, parts[0].length);
       const imageUrl = parts[1];
 
       return (
@@ -341,17 +341,19 @@ export default function ChatArea({
         </div>
       );
     } else if (content.startsWith('[File:')) {
-      const fileName = content.substring(7, content.length - 1);
+      const parts = content.split('|');
+      const fileName = parts[0].substring(6, parts[0].length);
+      const fileUrl = parts[1];
 
       return (
         <div className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 flex items-center justify-center bg-primary/10 rounded">
-              <span className="text-xs font-medium">{fileName.split('.').pop()?.toUpperCase()}</span>
+              <span className="text-xs font-medium">File</span>
             </div>
             <span className="text-sm truncate max-w-[150px]">{fileName}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => handleDownloadFile('/placeholder.svg', fileName)}>
+          <Button variant="ghost" size="sm" onClick={() => handleDownloadFile(fileUrl, fileName)}>
             <Download className="h-4 w-4" />
           </Button>
         </div>
@@ -506,17 +508,20 @@ export default function ChatArea({
             </div>
           )}
 
-          {activeConversation.messages.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={{
-                ...message,
-                content: renderMessageContent(message?.content),
-              }}
-              isOwnMessage={message.sender?.id === currentUser?.id}
-              onAddReaction={(emoji) => handleAddReaction(message.id, emoji)}
-            />
-          ))}
+          {activeConversation.messages.map((message) => {
+            console.log(message);
+            return (
+              <MessageItem
+                key={message.id}
+                message={{
+                  ...message,
+                  content: renderMessageContent(message?.content),
+                }}
+                isOwnMessage={message.sender?.id === currentUser?.id}
+                onAddReaction={(emoji) => handleAddReaction(message.id, emoji)}
+              />
+            );
+          })}
 
           {uploadingFiles.map((fileInfo) => (
             <div
