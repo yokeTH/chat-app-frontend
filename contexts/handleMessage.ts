@@ -1,3 +1,4 @@
+import { fetchConversationById } from '@/actions/conversation/get';
 import { Conversation, Message } from '@/lib/mock-data';
 
 interface HandleMessage {
@@ -8,7 +9,7 @@ interface HandleMessage {
   setConversations: (conversations: Conversation[]) => void;
 }
 
-export function handleMessage({
+export async function handleMessage({
   payload,
   activeConversation,
   conversations,
@@ -17,17 +18,17 @@ export function handleMessage({
 }: HandleMessage) {
   const messageConversationId = payload.conversation_id;
 
-  let targetConversation = conversations.find(
-    (conversation) => conversation.id === messageConversationId
-  );
-
-  if (!targetConversation && activeConversation) {
-    targetConversation = activeConversation;
-  }
+  let targetConversation =
+    conversations.find((c) => c.id === messageConversationId) ||
+    (activeConversation?.id === messageConversationId ? activeConversation : undefined);
 
   if (!targetConversation) {
-    console.error('No target conversation found for message', payload);
-    return;
+    const fetched = await fetchConversationById(messageConversationId);
+    if ('error' in fetched) {
+      console.error('No target conversation found for message', payload);
+      return;
+    }
+    targetConversation = fetched;
   }
 
   const updatedConversation: Conversation = {
@@ -36,15 +37,16 @@ export function handleMessage({
     lastMessage: payload,
   };
 
-  if (activeConversation && messageConversationId === activeConversation.id) {
+  if (activeConversation?.id === messageConversationId) {
     setActiveConversation(updatedConversation);
   }
 
-  setConversations(
-    conversations.map((conversation) =>
-      conversation.id === messageConversationId
-        ? updatedConversation
-        : conversation
-    )
-  );
+  const existingIndex = conversations.findIndex((c) => c.id === messageConversationId);
+
+  const newConversations =
+    existingIndex !== -1
+      ? conversations.map((c) => (c.id === messageConversationId ? updatedConversation : c))
+      : [...conversations, updatedConversation];
+
+  setConversations(newConversations);
 }
