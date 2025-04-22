@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PlusCircle, X, LogOut, Settings, ChevronsUpDown } from 'lucide-react';
+import { PlusCircle, X, LogOut, Settings, ChevronsUpDown, TriangleAlert, CirclePlus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
 import { useWebSocketContext } from '@/contexts/websocket-context';
 import { updateUser } from '@/actions/users/update';
+import { Badge } from '@/components/ui/badge';
+import { joinConversation } from '@/actions/conversation/join';
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -92,29 +94,40 @@ export default function Sidebar({
                   key={conversation.id}
                   className={cn(
                     'flex items-start gap-3 p-3 cursor-pointer hover:bg-accent/50 transition-colors',
-                    activeConversation?.id === conversation.id && 'bg-accent'
+                    activeConversation?.id === conversation.id && 'bg-accent',
+                    !isYourGroup(conversation, currentUser) && 'cursor-not-allowed'
                   )}
-                  onClick={() => onSelectConversation(conversation)}
+                  onClick={() => {
+                    if (isYourGroup(conversation, currentUser)) {
+                      onSelectConversation(conversation);
+                    }
+                  }}
                 >
                   <div className="relative">
-                    <Avatar>
-                      <AvatarImage src={getConversationAvatar(conversation, currentUser) || '/placeholder.svg'} />
-                      <AvatarFallback>{getInitials(getConversationName(conversation, currentUser))}</AvatarFallback>
-                    </Avatar>
+                    {isYourGroup(conversation, currentUser) ? (
+                      <Avatar>
+                        <AvatarImage src={getConversationAvatar(conversation, currentUser) || '/placeholder.svg'} />
+                        <AvatarFallback>{getInitials(getConversationName(conversation, currentUser))}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-10 w-10 bg-black text-white rounded-full flex items-center justify-center">
+                        <TriangleAlert className="h-6 w-6" />
+                      </div>
+                    )}
                     {!conversation.isGroup && otherUser && (
                       <OnlineStatus isOnline={otherUser.is_online || false} className="absolute bottom-0 right-0" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline">
-                      <h3 className="font-medium truncate">{getConversationName(conversation, currentUser)}</h3>
-                      {conversation.lastMessage && (
+                      <h3 className={`font-medium truncate`}>{getConversationName(conversation, currentUser)}</h3>
+                      {conversation.lastMessage && isYourGroup(conversation, currentUser) && (
                         <span className="text-xs text-muted-foreground">
                           {formatTime(new Date(conversation.lastMessage.created_at))}
                         </span>
                       )}
                     </div>
-                    {conversation.lastMessage && (
+                    {conversation.lastMessage && isYourGroup(conversation, currentUser) && (
                       <p className="text-sm text-muted-foreground truncate">
                         {conversation.isGroup && conversation.lastMessage.sender?.id !== currentUser?.id && (
                           <span className="font-medium">{conversation.lastMessage.sender?.name}: </span>
@@ -123,6 +136,16 @@ export default function Sidebar({
                       </p>
                     )}
                   </div>
+                  {!isYourGroup(conversation, currentUser) && (
+                    <Button
+                      className="rounded-full w-10 h-10"
+                      onClick={() => {
+                        joinConversation(conversation.id);
+                      }}
+                    >
+                      <Plus />
+                    </Button>
+                  )}
                 </div>
               );
             })}
@@ -256,4 +279,9 @@ function formatTime(date: Date): string {
     minute: 'numeric',
     hour12: true,
   }).format(date);
+}
+
+function isYourGroup(conversation?: Conversation, u?: User): boolean {
+  if (!conversation || !u) return false;
+  return conversation.members.some((member) => member?.id == u?.id);
 }

@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import { handleMessage } from '@/contexts/handleMessage';
 import { handleTyping } from '@/contexts/handleTyping';
 import { handleUserStatus } from '@/contexts/handleUserStatus';
+import { handleConversationUpdate } from '@/contexts/handleConversationUpdate';
 
 interface WebSocketContextType {
   sendMessage: (conversationId: string, content: string, attachments?: any[]) => void;
@@ -123,6 +124,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             setConversations,
             setActiveConversation,
           });
+          break;
+        case 'conversation_update':
+          handleConversationUpdate({ payload: m.payload, setConversations });
           break;
         default:
           console.log(`unhandle event ${m.event}`);

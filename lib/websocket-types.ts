@@ -9,7 +9,8 @@ export type WebSocketEvent =
   | 'reaction_add'
   | 'reaction_remove'
   | 'user_status'
-  | 'read_receipt';
+  | 'read_receipt'
+  | 'conversation_update';
 
 export interface WebSocketMessage {
   event: WebSocketEvent;
