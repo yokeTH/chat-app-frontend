@@ -4,9 +4,8 @@ import './globals.css';
 import AuthProvider from '@/components/auth-provider';
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Chat Application',
+  description: 'Hi',
 };
 
 export default function RootLayout({
