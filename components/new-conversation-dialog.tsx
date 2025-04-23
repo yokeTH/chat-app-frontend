@@ -73,13 +73,10 @@ export default function NewConversationDialog({
             <div className="flex flex-wrap gap-2">
               {selectedUsers.map((user) => (
                 <div key={user.id} className="flex items-center gap-1 bg-primary/10 rounded-full pl-1 pr-2 py-1">
-                  <div className="relative">
-                    <Avatar className="h-5 w-5">
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <OnlineStatus isOnline={user.is_online || false} className="absolute bottom-0 right-0" />
-                  </div>
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={user.avatar} />
+                    <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
                   <span className="text-xs">{user.name}</span>
                   <Button variant="ghost" size="icon" className="h-4 w-4 ml-1" onClick={() => handleUserToggle(user)}>
                     <X className="h-3 w-3" />
@@ -101,10 +98,13 @@ export default function NewConversationDialog({
                   onClick={() => handleUserToggle(user)}
                 >
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatar} />
+                        <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <OnlineStatus isOnline={user.is_online || false} className="absolute bottom-0 right-0" />
+                    </div>
                     <span>{user.name}</span>
                   </div>
                   {selectedUsers.some((u) => u.id === user.id) && <Check className="h-4 w-4 text-primary" />}
